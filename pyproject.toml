@@ -19,4 +19,5 @@ classifiers = [
 version = "0.0.1"
 dependencies = ["httpx"]
 
+[project.urls]
 Homepage = 'https://github.com/PyWoody/SnakesInSpace'
