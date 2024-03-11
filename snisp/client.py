@@ -109,9 +109,9 @@ def raise_for_status(response):  # pragma: no cover
 def load_user(
     *, symbol='', faction='', email='', token=''
 ):  # pragma: no cover
-    symbol = symbol.upper().strip()
-    faction = faction.upper().strip()
-    token = token.strip()
+    symbol = symbol.upper().strip() if symbol else ''
+    faction = faction.upper().strip() if faction else ''
+    token = token.strip() if token else ''
     if symbol == 'TESTING' and faction == 'TESTING':
         return UserData(
             token='TESTING_TOKEN',
