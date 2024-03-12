@@ -120,6 +120,7 @@ Each `Agent` will have its own lock accessible at `agent.lock`. The lock is used
 
 <details>
 <summary>Contracts</summary>
+
 Every new `Agent` starts with an open `Contract`. `Contract`s can be a great way to jump-start a new game.
 
 Your `Contracts` will be accessible via your `Agent`. For instance, to get the current `Contract`, simply call
@@ -1184,6 +1185,7 @@ The `fuel_stations` method will take a considerable amount of time to run initia
 
 <details>
 <summary>Shipyards</summary>
+
 Like `Markets`, all `Shipyards` are `Waypoints` but not all `Waypoints` are `Shipyards`. All `Shipyards` are `Markets` but not all `Markets` are `Shipyards`.
 
 You can find all `Shipyards` in a `ship`s System by iterating over the `ship.shipyards`
@@ -1329,7 +1331,8 @@ StarSystem({'symbol': 'X1-HD87', 'sectorSymbol': 'X1', 'type': 'ORANGE_STAR', 'x
 
 <details>
 <summary>Threads and Blocking</summary>
-As mentioned previously, the Library will take care of all calls to `.dock`, `.orbit`, as well as handeling Cooldowns and making sure no actions are peformed while the `ship` is in transit. The convenience of this does come at a cost: Blocking.
+
+SnakesInSpace will take care of all calls to `.dock`, `.orbit`, as well as handeling Cooldowns and making sure no actions are peformed while the `ship` is in transit. The convenience of this does come at a cost: Blocking.
 
 If you start one action in a thread and attempt to perform another action on that `ship` in another thread, the Library will automatically block until the previous action has completed.
 
@@ -1384,11 +1387,13 @@ Congratulations, you just stripped all of the `asteroids` in a `system` in less 
 
 <details>
 <summary>Ratelimiting</summary>
+
 SpaceTraders, a FREE game, allows two requests per second per IP with additional "bursts." The SnakesInSpace Library will automatically restrict you to two request per second per active instance. Meaning, if you run multiple clients in multiple terminals, you may run in to issues with SpaceTraders rate-limiting your IP. The SnakesInSpace rate-limiter will automatically handle these overages on your behalf, but, given this is a FREE resource, please take care to only run one to two clients at a time.
 </details>
 
 <details>
 <summary>Cache</summary>
+
 SnakesInSpace uses a rudimentary cache with a SQLite database to try and prevent any unnecessary calls to the SpaceTraders API. The current database will be located at SnakesInSpace/snisps/data/cache.db.
 
 The cache will be reset on every login.
@@ -1398,5 +1403,6 @@ The cache can be ignored for now by the end user.
 
 <details>
 <summary>Tests</summary>
+
 You can run `pytest` in the current working directory for `which SnakesInSpace` is located.
 </details>
