@@ -22,7 +22,10 @@ parser = argparse.ArgumentParser(
     description='Snakes in Space implementation of SpaceTraders.\n\n'
                 'This will drop you into an interactive shell of your current '
                 'game. '
-                'You will be able to access your Agent as "agent".\n'
+                'If you have already logged in at this location, '
+                'You will be able to access your Agent as "agent". '
+                'Otherwise, you will be dropped into an interactive '
+                'session with only "snisp" imported.\n'
                 'This is only intended for testing, status checking, etc. and '
                 'not for actual playing.\n',
     epilog='Additional information and basic HOW-TOs can be found here: ....'
@@ -65,6 +68,11 @@ agent_group.add_argument(
     '-e',
     '--email',
     help='Optional'
+)
+agent_group.add_argument(
+    '-t',
+    '--token',
+    help='Existing SpaceTraders token. Optional.'
 )
 
 log_group = parser.add_argument_group('Logging Options')
@@ -122,8 +130,14 @@ else:
 if args.exception_hook != 'thread_exception_hook_printer':
     threading.excepthook = snisp.utils.thread_exception_hook_raiser
 
-agent = snisp.agent.Agent(
-    symbol=args.symbol, faction=args.faction, email=args.email
-)
+try:
+    agent = snisp.agent.Agent(
+        symbol=args.symbol,
+        faction=args.faction,
+        email=args.email,
+        token=args.token,
+    )
+except snisp.exceptions.SpaceUserError as e:
+    print(f'WARNING: Could not Access Agent. {str(e)}')
 
 code.InteractiveConsole(locals=locals()).interact()

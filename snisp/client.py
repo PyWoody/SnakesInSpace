@@ -181,6 +181,10 @@ def load_user(
             faction=faction,
             email=email,
         )
+    if not symbol or not faction:
+        raise SpaceUserError(
+            '"symbol" and "faction" are required to create an account.'
+        )
     try:
         session = SpaceClient(headers={})
         payload = {'symbol': symbol, 'faction': faction}
