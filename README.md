@@ -45,7 +45,8 @@ True
 
 
 
-## Agent
+<details>
+<summary>Agent</summary>
 
 The `Agent` represents your Player in SpaceTraders.
 
@@ -63,7 +64,9 @@ Your `symbol` is your callsign in SpaceTraders. The `email` field is entirely op
 
 If you already know your `token`, you can also access your `Agent` directly by
 ```python3
->>> agent = Agent(token='your_spacetraders_token')
+>>> agent = Agent(symbol='your_symbol_here', token='your_spacetraders_token')
+>>> agent.symbol
+'your_symbol_here'
 >>> agent.token
 'your_spacetraders_token'
 ```
@@ -113,8 +116,10 @@ Agent(symbol='your_symbol_here', faction='COSMIC', email='optional@exmaple.com')
 and so on.
 
 Each `Agent` will have its own lock accessible at `agent.lock`. The lock is used internally but can also be used by the user. The lock type is a reentrant lock (`threading.RLock`).
+</details>
 
-## Contracts
+<details>
+<summary>Contracts</summary>
 Every new `Agent` starts with an open `Contract`. `Contract`s can be a great way to jump-start a new game.
 
 Your `Contracts` will be accessible via your `Agent`. For instance, to get the current `Contract`, simply call
@@ -220,9 +225,10 @@ A `contract` has a few helper properties.
 >>> contract.extractable  # Boolean for if items not yet fulfilled in the contract have tradeSymbols that can be extracted from an Asteroid
 >>> contract.siphonable  # Boolean for if items not yet fulfilled in the contract have tradeSymbols that can be siphoned from a Gas Giant
 ```
+</details>
 
-
-## Fleet
+<details>
+<summary>Fleet</summary>
 
 By default, a new Agent will receive a command `ship` and a `probe`. As you continue to play and purchase additional `ships`, `probes`, and `drones`, your fleet will be easily managable from your `agent.fleet`.
 
@@ -1023,8 +1029,10 @@ Below are some helper properties for things like arrival times, current location
 >>> ship.can_refine_ore  # Boolean for if the ship can refine ore onboard
 >>> ship.can_survey  # Boolean for if the ship has a Surveying Mount
 ```
+</details>
 
-## Waypoints
+<details>
+<summary>Waypoints</summary>
 
 In SpaceTraders, `Waypoints` are the fundamental location points within a System. All `Markets`, `Shipyards`, `Asteroids`, etc., are necessarily and suffiecient to being a `Waypoint`.
 
@@ -1090,11 +1098,11 @@ For convenience, the `Waypoint` types methods are:
 `artificial_gravity_wells`, `asteroid_bases`, `asteroid_fields`, `asteroids`, `debris_fields`, `engineered_asteroids`, `gas_giants`, `gravity_wells`, `jump_gates`, `moons`, `nebulas`, `orbital_stations`, `planets`, and `shipyards`.
 
 Also, for convenience, there is a `construction_sites` method for iterating over all `Waypoints` that are currently under construction. A `Waypoint` under construction will not have a specific type but will report if it's under construction by `waypiont.is_under_construction`.
+</details>
 
 
-
-
-## Markets
+<details>
+<summary>Markets</summary>
 
 A `Market` is a `Waypoint` type that imports, exports, or exchanges goods. Not all `Waypoints` are `Markets` but all `Markets` are `Waypoints`.
 
@@ -1172,8 +1180,10 @@ It is worth pointing out there is a `Markets.fuel_stations` method that is meant
 ```
 
 The `fuel_stations` method will take a considerable amount of time to run initially but all subsequent calls in the same session will cached. The internal SnakesInSpace cache is covered more in depth later on.
+</details>
 
-## Shipyards
+<details>
+<summary>Shipyards</summary>
 Like `Markets`, all `Shipyards` are `Waypoints` but not all `Waypoints` are `Shipyards`. All `Shipyards` are `Markets` but not all `Markets` are `Shipyards`.
 
 You can find all `Shipyards` in a `ship`s System by iterating over the `ship.shipyards`
@@ -1246,8 +1256,10 @@ The `ship` objects returned by `.available_ships` do have a convenience method o
 ...     if ship.purchase_price < 10_000:
 ...         ship.purchase()
 ```
+</details>
 
-## Construction Sites
+<details>
+<summary>Construction Sites</summary>
 
 Select `Waypoints` will need construction materials delivered to them before they'll function correctly. Currently, all `JumpGate`s  in new Systems will need to be completed before you'll be able to use them to `jump` between Systems.
 
@@ -1289,10 +1301,10 @@ Cargo({'capacity': 40, 'units': 0, 'inventory': []})
 ```
 
 Once all of the materials have been supplied to the `ConstructionSite`, it will no longer be returned by `ship.waypoints.construction_sites()` as it is no longer `.is_under_construction`.
+</details>
 
-
-
-## Systems
+<details>
+<summary>Systems</summary>
 
 `Systems` in SpaceTraders are connected by `JumpGates` and by `Ships` that can `warp` between them.
 
@@ -1313,8 +1325,10 @@ Each `ship` will contain the `system` the `ship` is located in it's respective `
 >>> scans[0]
 StarSystem({'symbol': 'X1-HD87', 'sectorSymbol': 'X1', 'type': 'ORANGE_STAR', 'x': -22731, 'y': -8129, 'distance': 300}), StarSystem({'symbol': 'X1-MR62', 'sectorSymbol': 'X1', 'type': 'BLUE_STAR', 'x': -23151, 'y': -8498, 'distance': 761})
 ```
+</details>
 
-## Threads and Blocking
+<details>
+<summary>Threads and Blocking</summary>
 As mentioned previously, the Library will take care of all calls to `.dock`, `.orbit`, as well as handeling Cooldowns and making sure no actions are peformed while the `ship` is in transit. The convenience of this does come at a cost: Blocking.
 
 If you start one action in a thread and attempt to perform another action on that `ship` in another thread, the Library will automatically block until the previous action has completed.
@@ -1366,18 +1380,23 @@ This is a simple and inefficent example but it shows how well each `ship` can ma
 * Repeat until the `asteroid` has been depeleted, upon which it will exit the loop and return to be joined and continue on to the next `asteroid`
 
 Congratulations, you just stripped all of the `asteroids` in a `system` in less than 20 LOC.
+</details>
 
-
-## Ratelimiting
+<details>
+<summary>Ratelimiting</summary>
 SpaceTraders, a FREE game, allows two requests per second per IP with additional "bursts." The SnakesInSpace Library will automatically restrict you to two request per second per active instance. Meaning, if you run multiple clients in multiple terminals, you may run in to issues with SpaceTraders rate-limiting your IP. The SnakesInSpace rate-limiter will automatically handle these overages on your behalf, but, given this is a FREE resource, please take care to only run one to two clients at a time.
+</details>
 
-## Cache
+<details>
+<summary>Cache</summary>
 SnakesInSpace uses a rudimentary cache with a SQLite database to try and prevent any unnecessary calls to the SpaceTraders API. The current database will be located at SnakesInSpace/snisps/data/cache.db.
 
 The cache will be reset on every login.
 
 The cache can be ignored for now by the end user.
+</details>
 
-
-## Tests
+<details>
+<summary>Tests</summary>
 You can run `pytest` in the current working directory for `which SnakesInSpace` is located.
+</details>
