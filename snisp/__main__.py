@@ -131,7 +131,7 @@ else:
         format='%(asctime)s %(levelname)s %(name)s | %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
         encoding='utf-8',
-        filename=args.filename,
+        filename=log_fname,
         filemode=args.file_mode,
         level=LOG_LEVELS[args.level],
         force=True,
