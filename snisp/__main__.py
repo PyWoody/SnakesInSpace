@@ -137,6 +137,7 @@ try:
         email=args.email,
         token=args.token,
     )
+    ship = next(iter(agent.fleet))
 except snisp.exceptions.SpaceUserError as e:
     print(f'WARNING: Could not Access Agent. {str(e)}')
 

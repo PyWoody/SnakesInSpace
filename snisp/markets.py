@@ -34,16 +34,17 @@ class Markets:
 
     def __init__(self, ship, location):
         self.ship = ship
+        self.agent = ship.agent
         self.location = location
 
     def __repr__(self):
         cls = self.__class__.__name__
-        return f'{cls}({self.ship.agent!r}, {self.location!r})'
+        return f'{cls}({self.agent!r}, {self.location!r})'
 
     def __iter__(self):
-        _waypoint = Waypoints(self.ship.agent, self.location)
+        _waypoint = Waypoints(self.agent, self.location)
         for waypoint in _waypoint(traits='MARKETPLACE'):
-            yield Market(self.ship.agent, waypoint.to_dict())
+            yield Market(self.agent, waypoint.to_dict())
 
     @retry()
     def __call__(
@@ -58,7 +59,7 @@ class Markets:
             waypoint_symbol = self.location.waypoint
             system_symbol = self.location.system
         try:
-            response = self.ship.agent.client.get(
+            response = self.agent.client.get(
                 f'/systems/{system_symbol}/waypoints/{waypoint_symbol}/market'
             )
         except ClientError as e:
@@ -68,15 +69,31 @@ class Markets:
                         f'Waypoint at {system_symbol}-->{waypoint_symbol} '
                         'does not exist'
                     )
-                    return MarketData(self.ship.agent, {})
+                    return MarketData(self.agent, {})
             raise e
         data = response.json()['data']
         data['location'] = Location(
-            self.ship.agent, {'headquarters': waypoint_symbol}
+            self.agent, {'headquarters': waypoint_symbol}
         )
         if not data.get('tradeGoods'):
             data['tradeGoods'] = []
-        return MarketData(self.ship.agent, data)
+        return MarketData(self.agent, data)
+
+    def cheapest(self, trade_symbol):
+        trade_symbol = trade_symbol.upper().strip()
+        best_market = None
+        best_price = None
+        for market in self:
+            market_data = market.data
+            goods = itertools.chain(
+                market_data.imports, market_data.exports, market_data.exchange
+            )
+            for good in goods:
+                if good.symbol == trade_symbol:
+                    if best_price is None or good.purchase_price < best_price:
+                        best_market = market
+                        best_price = good.purchase_price
+        return best_market
 
     def cheapest_import(self, trade_symbol):
         if imports := list(self.search(imports=trade_symbol)):
@@ -217,6 +234,17 @@ class Markets:
         except ValueError:
             return None, None
 
+    def sells(self, trade_symbol):
+        trade_symbol = trade_symbol.strip().upper()
+        for market in self:
+            market_data = market.data
+            if any(i.symbol == trade_symbol for i in market_data.imports):
+                yield market
+            elif any(i.symbol == trade_symbol for i in market_data.exports):
+                yield market
+            elif any(i.symbol == trade_symbol for i in market_data.exchange):
+                yield market
+
     def imports(self, trade_symbol):
         trade_symbol = trade_symbol.strip().upper()
         for market in self:
@@ -242,12 +270,12 @@ class Markets:
                         yield market
 
     def fuel_stations(self, *, system_symbol=None, traits=None):
-        with self.ship.agent.lock:
-            if not self.ship.agent.client.testing:
+        with self.agent.lock:
+            if not self.agent.client.testing:
                 if fuel_stations := cache.get_fuel_stations(self.location):
                     return fuel_stations
             fuel_stations = []
-            fs_waypoints = Waypoints(self.ship.agent, self.location)
+            fs_waypoints = Waypoints(self.agent, self.location)
             fuel_station_symbols = set()
             for fuel_station in itertools.chain(
                 fs_waypoints(
@@ -261,7 +289,7 @@ class Markets:
                 if fuel_station.symbol not in fuel_station_symbols:
                     fuel_stations.append(fuel_station)
                     fuel_station_symbols.add(fuel_station.symbol)
-            if not self.ship.agent.client.testing:
+            if not self.agent.client.testing:
                 cache.insert_fuel_stations(self.location, fuel_stations)
         return fuel_stations
 
@@ -297,78 +325,70 @@ class MarketData(utils.AbstractJSONItem):
 
 
 def best_market_pairs(agent, ship, market_data, buffer=1_000, price_delta=0):
-    current_credits = agent.data.credits - buffer
-    exports = {}
-    imports = {}
+    market_pairs = {}
     for market in market_data:
-        if trade_goods := market.trade_goods:
-            for good in trade_goods:
-                if good.symbol != 'FUEL':
-                    if good.type == 'EXPORT' or good.type == 'EXCHANGE':
-                        if good.purchase_price < current_credits:
-                            exports.setdefault(good.symbol, []).append(market)
-                    elif good.type == 'IMPORT':
-                        imports.setdefault(good.symbol, []).append(market)
+        for good in market.trade_goods:
+            market_pairs.setdefault(good.symbol, []).append((market, good))
     output = []
     cache = {}
-    for i_symbol, i_markets in imports.items():
-        for e_market in exports.get(i_symbol, []):
-            for i_market in i_markets:
-                i_wp = cache.get(
-                    (
-                        i_market.location.system,
-                        i_market.location.waypoint
-                    )
+
+    for trade_symbol, markets in market_pairs.items():
+        e_market = min(markets, key=lambda x: x[1].purchase_price)[0]
+        i_market = max(markets, key=lambda x: x[1].sell_price)[0]
+        i_wp = cache.get(
+            (
+                i_market.location.system,
+                i_market.location.waypoint
+            )
+        )
+        if not i_wp:
+            i_wp = ship.waypoints.get(
+                system_symbol=i_market.location.system,
+                waypoint_symbol=i_market.location.waypoint,
+            )
+            cache[
+                (
+                    i_market.location.system,
+                    i_market.location.waypoint
                 )
-                if not i_wp:
-                    i_wp = ship.waypoints.get(
-                        system_symbol=i_market.location.system,
-                        waypoint_symbol=i_market.location.waypoint,
-                    )
-                    cache[
-                        (
-                            i_market.location.system,
-                            i_market.location.waypoint
-                        )
-                    ] = i_wp
-                e_wp = cache.get(
-                    (
-                        e_market.location.system,
-                        e_market.location.waypoint
-                    )
+            ] = i_wp
+        e_wp = cache.get(
+            (
+                e_market.location.system,
+                e_market.location.waypoint
+            )
+        )
+        if not e_wp:
+            e_wp = ship.waypoints.get(
+                system_symbol=e_market.location.system,
+                waypoint_symbol=e_market.location.waypoint,
+            )
+            cache[
+                (
+                    e_market.location.system,
+                    e_market.location.waypoint
                 )
-                if not e_wp:
-                    e_wp = ship.waypoints.get(
-                        system_symbol=e_market.location.system,
-                        waypoint_symbol=e_market.location.waypoint,
-                    )
-                    cache[
-                        (
-                            e_market.location.system,
-                            e_market.location.waypoint
-                        )
-                    ] = e_wp
-                output.append(
-                    MarketDataRecord(
-                        distance=utils.calculate_waypoint_distance(i_wp, e_wp),
-                        trade_symbol=i_symbol,
-                        import_market=i_market,
-                        export_market=e_market,
-                        import_waypoint=i_wp,
-                        export_waypoint=e_wp,
-                    )
-                )
+            ] = e_wp
+        output.append(
+            MarketDataRecord(
+                distance=utils.calculate_waypoint_distance(i_wp, e_wp),
+                trade_symbol=trade_symbol,
+                import_market=i_market,
+                export_market=e_market,
+                import_waypoint=i_wp,
+                export_waypoint=e_wp,
+            )
+        )
     output = filter(lambda x: market_delta_sort_key(x) > price_delta, output)
     return sorted(output, key=market_delta_sort_key, reverse=True)
 
 
 def market_delta_sort_key(market):
     for i_good in market.import_market.trade_goods:
-        if i_good.type == 'IMPORT' and i_good.symbol == market.trade_symbol:
+        if i_good.symbol == market.trade_symbol:
             for e_good in market.export_market.trade_goods:
-                if e_good.type == 'EXPORT' or e_good.type == 'EXCHANGE':
-                    if e_good.symbol == market.trade_symbol:
-                        return i_good.sell_price - e_good.purchase_price
+                if e_good.symbol == market.trade_symbol:
+                    return i_good.sell_price - e_good.purchase_price
 
 
 def import_sort_key(market_data, trade_symbol):

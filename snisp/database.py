@@ -110,7 +110,7 @@ def insert_waypoints(
 
 
 def setup():
-    if not os.path.isfile(DATABASE):
+    if not os.path.isfile(DATABASE):  # pragma: no cover
         os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()

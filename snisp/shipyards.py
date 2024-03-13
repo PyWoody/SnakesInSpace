@@ -11,22 +11,23 @@ class Shipyards:
 
     def __init__(self, ship, location):
         self.ship = ship
+        self.agent = ship.agent
         self.location = location
 
     def __repr__(self):
         cls = self.__class__.__name__
-        return f'{cls}({self.ship.agent!r}, {self.location!r})'
+        return f'{cls}({self.agent!r}, {self.location!r})'
 
     def __iter__(self):
-        waypoint = waypoints.Waypoints(self.ship.agent, self.location)
+        waypoint = waypoints.Waypoints(self.agent, self.location)
         for shipyard in waypoint(traits='SHIPYARD'):
-            yield Shipyard(self.ship.agent, shipyard.to_dict())
+            yield Shipyard(self.agent, shipyard.to_dict())
 
     def autopurchase(self, *, ship_type, max_units=1, buffer=300_000):
         max_units = int(max_units)
         transactions = []
         smd = self.ship.markets.shipyard_market_data
-        with self.ship.agent.lock:
+        with self.agent.lock:
             while max_units > 0:
                 shipyard, market_data = smd(ship_type)
                 if not market_data or not shipyard:
@@ -35,7 +36,7 @@ class Shipyards:
                         f'No Shipyard found selling {ship_type}s'
                     )
                     return transactions
-                credits_buffer = self.ship.agent.data.credits - buffer
+                credits_buffer = self.agent.data.credits - buffer
                 if market_data.purchase_price <= credits_buffer:
                     transactions.append(shipyard.purchase(ship_type))
                     max_units -= 1

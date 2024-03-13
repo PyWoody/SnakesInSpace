@@ -1135,10 +1135,23 @@ You can find which `Markets` import, exchange, or export specific goods via thei
 
 ```python3
 >>> ship = next(iter(agent.fleet))
->>> iron_importers = list(ship.markets.imports('IRON')
->>> iron_exports = list(ship.markets.exports('IRON')
->>> iron_exchanges = list(ship.markets.exchanges('IRON')
+>>> iron_importers = list(ship.markets.imports('IRON'))
+>>> iron_exports = list(ship.markets.exports('IRON'))
+>>> iron_exchanges = list(ship.markets.exchanges('IRON'))
 ```
+
+**Imports, Exports, Exchange**
+
+`imports`, `exports`, and `exchange` is a bit a misnomer with regards to what you can do at a `Market`. A `ship` can always purchase a good at a `Market` that has the good listed as an `imports` or `exchange`. `import` means the good is consumed at the market; `export` means the good is produced at the `market`; and, `exchange` means the `Market` does not create or use the good but simply buys/sells it from/to users.
+
+A convenience function, `ship.markets.sells` returns an iterable of all `Markets` that sell the listed good. As mentioned above, if the `market` sells the good, it also purchases the good.
+
+```python3
+>>> ship = next(iter(agent.fleet))
+>>> iron_markets = list(ship.markets.sells('IRON'))
+```
+
+A `Market` that `imports` the good will almost always pay more than a `Market` that `exports` it, while a `Market` that `exports` a good will almost always be cheaper to purchase at than at a `Market` that `imports` it.
 
 
 **Market Data**

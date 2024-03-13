@@ -178,6 +178,72 @@ class TestMarkets:
         assert len(list(invalid)) == 0
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
+    def test_cheapest(self, respx_mock):
+        waypoints_data = json.load(
+            open(os.path.join(DATA_DIR, 'waypoints.json'), encoding='utf8')
+        )
+        for wp in waypoints_data['data']:
+            wp['traits'][0]['symbol'] = 'MARKETPLACE'
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints', params={'page': 1}
+        ).mock(
+            return_value=httpx.Response(200, json=waypoints_data)
+        )
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints', params={'page': 2}
+        ).mock(
+            return_value=httpx.Response(200, json={'data': []})
+        )
+        # lazy
+        expensive_market_data = json.load(
+            open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
+        )
+        cheapest_market_data = json.load(
+            open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
+        )
+        for good in cheapest_market_data['data']['tradeGoods']:
+            if good['type'] == 'IMPORT':
+                good['sellPrice'] = 1
+        iron_market_data = json.load(
+            open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
+        )
+        iron_market_data['data']['symbol'] = 'TEST-SYSTEM-WAYPOINT'
+        for good in iron_market_data['data']['tradeGoods']:
+            good['symbol'] = 'IRON'
+        iron_market_data['data']['imports'][0]['symbol'] = 'IRON'
+        iron_market_data['data']['exchange'][0]['symbol'] = 'IRON'
+        iron_market_data['data']['exports'][0]['symbol'] = 'IRON'
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-CLOSESTWAYPOINT/market'
+        ).mock(
+            return_value=httpx.Response(200, json=expensive_market_data)
+        )
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints/'
+            'TEST-SYSTEM-FARTHESTWAYPOINT/market'
+        ).mock(
+            return_value=httpx.Response(200, json=iron_market_data)
+        )
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-WAYPOINT/market'
+        ).mock(
+            return_value=httpx.Response(200, json=cheapest_market_data)
+        )
+        ship_data = json.load(
+            open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')
+        )
+        ship_data['data']['nav']['systemSymbol'] = 'TEST-SYSTEM'
+        ship_data['data']['nav']['waypointSymbol'] = 'TEST-SYSTEM-WAYPOINT'
+        respx_mock.get('/my/ships/TEST_SHIP_SYMBOL').mock(
+            return_value=httpx.Response(200, json=ship_data)
+        )
+        ship = self.agent.fleet('TEST_SHIP_SYMBOL')
+
+        market = ship.markets.cheapest('PRECIOUS_STONES')
+        assert market.symbol == 'TEST-SYSTEM-WAYPOINT'
+        assert not ship.markets.cheapest('INVALID')
+
+    @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_cheapest_import(self, respx_mock):
         waypoints_data = json.load(
             open(os.path.join(DATA_DIR, 'waypoints.json'), encoding='utf8')
@@ -965,6 +1031,79 @@ class TestMarkets:
         assert not ship.markets.most_expensive_export('INVALID')
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
+    def test_sells(self, respx_mock):
+        waypoints_data = json.load(
+            open(os.path.join(DATA_DIR, 'waypoints.json'), encoding='utf8')
+        )
+        for wp in waypoints_data['data']:
+            wp['traits'][0]['symbol'] = 'MARKETPLACE'
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints', params={'page': 1}
+        ).mock(
+            return_value=httpx.Response(200, json=waypoints_data)
+        )
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints', params={'page': 2}
+        ).mock(
+            return_value=httpx.Response(200, json={'data': []})
+        )
+        import_market_data = json.load(
+            open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
+        )
+        for good in import_market_data['data']['exports']:
+            good['symbol'] = 'IRON'
+        for good in import_market_data['data']['exchange']:
+            good['symbol'] = 'IRON'
+        import_market_data['data']['imports'][0]['symbol'] = 'PRECIOUS_STONES'
+        export_market_data = json.load(
+            open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
+        )
+        for good in export_market_data['data']['imports']:
+            good['symbol'] = 'IRON'
+        for good in export_market_data['data']['exchange']:
+            good['symbol'] = 'IRON'
+        export_market_data['data']['exports'][0]['symbol'] = 'PRECIOUS_STONES'
+        exchange_market_data = json.load(
+            open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
+        )
+        exchange_market_data['data']['symbol'] = 'TEST-SYSTEM-WAYPOINT'
+        for good in exchange_market_data['data']['imports']:
+            good['symbol'] = 'IRON'
+        for good in exchange_market_data['data']['exports']:
+            good['symbol'] = 'IRON'
+        exchange_market_data['data']['exchange'][0]['symbol'] = 'PRECIOUS_STONES'  # noqa: E501
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-CLOSESTWAYPOINT/market'
+        ).mock(
+            return_value=httpx.Response(200, json=import_market_data)
+        )
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints/'
+            'TEST-SYSTEM-FARTHESTWAYPOINT/market'
+        ).mock(
+            return_value=httpx.Response(200, json=exchange_market_data)
+        )
+        respx_mock.get(
+            '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-WAYPOINT/market'
+        ).mock(
+            return_value=httpx.Response(200, json=export_market_data)
+        )
+        ship_data = json.load(
+            open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')
+        )
+        ship_data['data']['nav']['systemSymbol'] = 'TEST-SYSTEM'
+        ship_data['data']['nav']['waypointSymbol'] = 'TEST-SYSTEM-WAYPOINT'
+        respx_mock.get('/my/ships/TEST_SHIP_SYMBOL').mock(
+            return_value=httpx.Response(200, json=ship_data)
+        )
+        ship = self.agent.fleet('TEST_SHIP_SYMBOL')
+
+        markets = ship.markets.sells('PRECIOUS_STONES')
+        assert inspect.isgenerator(markets)
+        assert len(list(markets)) == 3
+        assert not list(ship.markets.sells('INVALID'))
+
+    @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_imports(self, respx_mock):
         waypoints_data = json.load(
             open(os.path.join(DATA_DIR, 'waypoints.json'), encoding='utf8')
@@ -1238,34 +1377,27 @@ class TestMarkets:
             open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
         )
         for good in cheapest_market_data['data']['tradeGoods']:
-            if good['type'] == 'IMPORT':
-                good['symbol'] = 'CHEAPEST'
+            if good['symbol'] == 'PRECIOUS_STONES':
+                good['purchasePrice'] = 100
         for good in expensive_market_data['data']['tradeGoods']:
-            if good['type'] == 'EXPORT' or good['type'] == 'EXCHANGE':
-                good['symbol'] = 'EXPENSIVE'
-            elif good['type'] == 'IMPORT':
+            if good['symbol'] == 'PRECIOUS_STONES':
+                good['purchasePrice'] = 1_000
                 good['sellPrice'] = 1_000
         cheapest_market_data['data']['symbol'] = 'TEST-SYSTEM-WAYPOINT'
         expensive_market_data['data']['symbol'] = 'TEST-SYSTEM-CLOSESTWAYPOINT'
-        iron_market_data = json.load(
+        best_sell_market_data = json.load(
             open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
         )
-        iron_market_data['data']['symbol'] = 'TEST-SYSTEM-FARTHESTWAYPOINT'
-        for good in iron_market_data['data']['tradeGoods']:
-            good['symbol'] = 'IRON'
-        iron_market_data['data']['exchange'][0]['symbol'] = 'IRON'
+        best_sell_market_data['data']['symbol'] = 'TEST-SYSTEM-FARTHESTWAYPOINT'  # noqa: E501
+        for good in best_sell_market_data['data']['tradeGoods']:
+            if good['symbol'] == 'PRECIOUS_STONES':
+                good['sellPrice'] = 2_000
+        best_sell_market_data['data']['exchange'][0]['symbol'] = 'IRON'
         respx_mock.get(
             '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-WAYPOINT'
         ).mock(
             return_value=httpx.Response(
                 200, json={'data': waypoints_data['data'][1]}
-            )
-        )
-        respx_mock.get(
-            '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-CLOSESTWAYPOINT'
-        ).mock(
-            return_value=httpx.Response(
-                200, json={'data': waypoints_data['data'][0]}
             )
         )
         respx_mock.get(
@@ -1284,7 +1416,7 @@ class TestMarkets:
             '/systems/TEST-SYSTEM/waypoints/'
             'TEST-SYSTEM-FARTHESTWAYPOINT/market'
         ).mock(
-            return_value=httpx.Response(200, json=iron_market_data)
+            return_value=httpx.Response(200, json=best_sell_market_data)
         )
         respx_mock.get(
             '/systems/TEST-SYSTEM/waypoints/TEST-SYSTEM-WAYPOINT/market'
@@ -1300,19 +1432,12 @@ class TestMarkets:
             return_value=httpx.Response(200, json=ship_data)
         )
         ship = self.agent.fleet('TEST_SHIP_SYMBOL')
-        agent_data = json.load(
-            open(os.path.join(DATA_DIR, 'agent_data.json'), encoding='utf8')
-        )
-        agent_data['data']['credits'] = 100_000
-        respx_mock.get('/my/agent').mock(
-            return_value=httpx.Response(200, json=agent_data)
-        )
 
         market_data = [m.data for m in ship.markets]
         pairs = snisp.markets.best_market_pairs(self.agent, ship, market_data)
         assert int(pairs[0].distance) == 70
         assert pairs[0].trade_symbol == 'PRECIOUS_STONES'
-        assert pairs[0].import_market.symbol == 'TEST-SYSTEM-CLOSESTWAYPOINT'
+        assert pairs[0].import_market.symbol == 'TEST-SYSTEM-FARTHESTWAYPOINT'
         assert pairs[0].export_market.symbol == 'TEST-SYSTEM-WAYPOINT'
 
 
