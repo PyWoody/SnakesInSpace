@@ -1,10 +1,16 @@
 import argparse
 import code
+import importlib.metadata
 import logging
+import os
 import threading
 
 import snisp
 
+try:
+    VERSION = importlib.metadata.version("SnakesInSpace")
+except Exception:
+    VERSION = ''
 
 LOG_LEVELS = {
     'NOTSET': logging.NOTSET,
@@ -34,7 +40,7 @@ parser = argparse.ArgumentParser(
            'website at https://spacetraders.io/'
 )
 parser.add_argument(
-    '-v', '-version', action='version', version='%(prog)s 0.0.1'
+    '-v', '-version', action='version', version=f'%(prog)s {VERSION}'
 )
 
 agent_group = parser.add_argument_group('Agent Options')
@@ -89,9 +95,7 @@ log_group.add_argument(
     help='Sets the file mode for the logger to either "w" '
          'for write or "a" for append. Default is "w"'
 )
-log_group.add_argument(
-    '--filename', default='snisp.log', help='Default is "snisp.log"'
-)
+log_group.add_argument('--filename', help='Default is "snisp.log"')
 log_group.add_argument(
     '--level',
     choices=['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
@@ -117,6 +121,12 @@ args = parser.parse_args()
 if args.no_logging:
     logging.getLogger().disabled = True
 else:
+    if args.filename:
+        log_fname = args.filename
+    else:
+        log_fname = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)), 'snisp.log'
+        )
     logging.basicConfig(
         format='%(asctime)s %(levelname)s %(name)s | %(message)s',
         datefmt='%m/%d/%Y %I:%M:%S %p',
