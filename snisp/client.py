@@ -125,7 +125,7 @@ def load_user(
     last_login = str(datetime.now(timezone.utc))
     if os.path.isfile(config_file):
         user_data = json.load(open(config_file, 'r', encoding='utf8'))
-        if not symbol or not token:
+        if not symbol and not token:
             if user := max(
                 user_data.get('users', []),
                 key=lambda x: datetime.fromisoformat(x['last_login'])
