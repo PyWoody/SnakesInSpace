@@ -1434,11 +1434,14 @@ class TestMarkets:
         ship = self.agent.fleet('TEST_SHIP_SYMBOL')
 
         market_data = [m.data for m in ship.markets]
-        pairs = snisp.markets.best_market_pairs(self.agent, ship, market_data)
+        pairs = snisp.markets.best_market_pairs(ship, market_data)
         assert int(pairs[0].distance) == 70
         assert pairs[0].trade_symbol == 'PRECIOUS_STONES'
         assert pairs[0].import_market.symbol == 'TEST-SYSTEM-FARTHESTWAYPOINT'
         assert pairs[0].export_market.symbol == 'TEST-SYSTEM-WAYPOINT'
+        assert not snisp.markets.best_market_pairs(
+            ship, market_data, price_delta=1_000_000
+        )
 
 
 class MarketSideEffect:

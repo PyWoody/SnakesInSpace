@@ -12,7 +12,6 @@ from snisp.systems import Location
 
 logger = logging.getLogger(__name__)
 
-# God-awful name
 MarketDataRecord = namedtuple(
     'MarketDataRecord',
     [
@@ -186,7 +185,6 @@ class Markets:
                 return min(markets, key=lambda x: self.ship.distance(x[0]))
 
     def most_expensive_export(self, trade_symbol):
-        # Terrible fucking name
         if exports := list(self.search(exports=trade_symbol)):
             try:
                 exports = sorted(
@@ -324,7 +322,7 @@ class MarketData(utils.AbstractJSONItem):
         self._data = data
 
 
-def best_market_pairs(agent, ship, market_data, buffer=1_000, price_delta=0):
+def best_market_pairs(ship, market_data, price_delta=0):
     market_pairs = {}
     for market in market_data:
         for good in market.trade_goods:
@@ -333,8 +331,10 @@ def best_market_pairs(agent, ship, market_data, buffer=1_000, price_delta=0):
     cache = {}
 
     for trade_symbol, markets in market_pairs.items():
-        e_market = min(markets, key=lambda x: x[1].purchase_price)[0]
-        i_market = max(markets, key=lambda x: x[1].sell_price)[0]
+        e_market, e_good = min(markets, key=lambda x: x[1].purchase_price)
+        i_market, i_good = max(markets, key=lambda x: x[1].sell_price)
+        if i_good.sell_price - e_good.purchase_price < price_delta:
+            continue
         i_wp = cache.get(
             (
                 i_market.location.system,
@@ -379,7 +379,6 @@ def best_market_pairs(agent, ship, market_data, buffer=1_000, price_delta=0):
                 export_waypoint=e_wp,
             )
         )
-    output = filter(lambda x: market_delta_sort_key(x) > price_delta, output)
     return sorted(output, key=market_delta_sort_key, reverse=True)
 
 
