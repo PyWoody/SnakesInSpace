@@ -321,6 +321,22 @@ class MarketData(utils.AbstractJSONItem):
         self.agent = agent
         self._data = data
 
+    @property
+    def data(self):
+        # REMINDER: This is the same data returned by Markets.__call__
+        response = self.agent.client.get(
+            f'/systems/{self.location.system}/waypoints/{self.symbol}/market'
+        )
+        data = response.json()['data']
+        data['location'] = self.location
+        if not data.get('tradeGoods'):
+            data['tradeGoods'] = []
+        return MarketData(self.agent, data)
+
+    @property
+    def location(self):
+        return Location(self.agent, {'headquarters': self.symbol})
+
 
 def best_market_pairs(ship, market_data, price_delta=0):
     market_pairs = {}
