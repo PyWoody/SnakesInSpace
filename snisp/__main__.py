@@ -66,9 +66,9 @@ interactive_parser = subparsers.add_parser(
     description='This will drop you into an interactive shell of your current '
                 'game. '
                 'If you have already logged in at this location, '
-                'You will be able to access your Agent as "agent". '
+                'you will be able to access your Agent as "agent". '
                 'Otherwise, you will be dropped into an interactive '
-                'session with only "snisp" imported.\n'
+                'session with only "snisp" imported.\n\n'
                 'This is only intended for testing, status checking, etc. and '
                 'not for actual playing.\n',
 )
@@ -114,10 +114,10 @@ tail_parser  = subparsers.add_parser(
     allow_abbrev=False,
     formatter_class=argparse.RawTextHelpFormatter,
     help='Options for tailing the command log. '
-         'By default, "httpx" logs will be ignored.',
+         'By default, logs by "httpx" will be ignored.',
     description='Options for tailling the command log. '
                 'By default, logs made by "httpx" will be ignored. '
-                '\nIf you have "rich" (https://github.com/Textualize/rich) '
+                '\n\nIf you have "rich" (https://github.com/Textualize/rich) '
                 'installed, you can add additonal regex patterns for '
                 'highlighting.\nOtherwise, '
                 'default highlights will be attempted.',
@@ -129,6 +129,8 @@ tail_parser.add_argument(
     type=regex_colors,
     help='Regex patterns to pass to Rich. Requires "rich" to be installed.\n'
          r'e.g.,--paterns  "\d+,blue on white,red on green" "\w,red,green"'
+         'The pattern is "{regex},{colors},..." where {colors} will be'
+         'cycled over all matches.'
 )
 tail_parser.add_argument(
     '-m',
@@ -218,7 +220,13 @@ if _subparser := args.subparsers:
                 'Please run the command again and remove "--no-logging"'
             )
         from snisp import tail
-        tail.tail(log_fname, regexes=args.patterns)
+        tail.tail(
+            log_fname,
+            color_regexes=args.patterns,
+            match_regexes=args.matches,
+            filter_regexes=args.filters,
+            show_https=args.show_httpx,
+        )
     elif _subparser == 'interactive':
         try:
             agent = snisp.agent.Agent(
