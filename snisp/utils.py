@@ -6,6 +6,12 @@ import traceback
 
 from collections.abc import Iterable
 
+try:
+    from rich.highlighter import Highlighter
+except ModuleNotFoundError:
+    class Highlighter:
+        pass
+
 
 ATTRIBUTE_LOCK = threading.Lock()
 logger = logging.getLogger(__name__)
@@ -181,6 +187,35 @@ class BaseJSONItem(AbstractJSONItem):
 
     def __init__(self, data):
         self._data = data
+
+
+class DummyHighlighter:
+
+    regexes = []
+
+    def __call__(self, text):
+        return text
+
+
+class RichHighlighter(Highlighter):
+
+    regexes = []
+
+    def highlight(self, text):
+        plain_text = text.plain
+        for regex, colors in self.regexes:
+            for match in regex.finditer(plain_text):
+                if (num_groups := len(match.groups())):
+                    for group in range(1, num_groups+1):
+                        text.stylize(
+                            next(colors),
+                            match.span(group)[0],
+                            match.span(group)[1]
+                        )
+                else:
+                    text.stylize(
+                        next(colors), match.span(0)[0], match.span(0)[1]
+                    )
 
 
 def is_list_like(value):
