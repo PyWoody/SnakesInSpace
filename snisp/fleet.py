@@ -581,7 +581,8 @@ class Ship(utils.AbstractJSONItem):
                 if buy_units <= 0:
                     return transactions
                 purchase_amount = buy_units * unit_price
-                while purchase_amount > self.agent.data.credits - buffer:
+                cash = self.agent.data.credits
+                while purchase_amount > cash - buffer:
                     buy_units -= 1
                     if buy_units == 0:
                         return transactions
