@@ -26,25 +26,17 @@ def tail(
     sleep=1
 ):
     highlighter = LogHighlighter()
-    if color_regexes is None:
-        regexes = [
-            (
-                re.compile(r'https://(api)\.(spacetraders)\.io\/.*$'),
-                itertools.cycle(['blue on white', 'green'])
-            )
-        ]
-    for regex, colors in color_regexes:
-        highlighter.regexes.append((regex, colors))
+    if color_regexes is not None:
+        for regex, colors in color_regexes:
+            highlighter.regexes.append((regex, colors))
     if match_regexes is None:
         match_regexes = []
     else:
-        for regex in match_regexes:
-            match_regexes.append(re.compile(regex))
+        match_regexes = [re.compile(r) for r in match_regexes]
     if filter_regexes is None:
         filter_regexes = []
     else:
-        for regex in filter_regexes:
-            filter_regexes.append(re.compile(regex))
+        filter_regexes = [re.compile(r) for r in filter_regexes]
     if not os.path.isfile(log_file):
         logger.error(f'Logfile {log_file} does not exist. Cannot tail.')
         return
@@ -62,15 +54,14 @@ def tail(
                 last_write_pos = f.tell()
                 if data := f.readline():
                     line = data.decode('utf8', errors='ignore').strip()
-                    # TODO: Check when back online
-                    if not show_httpx and ' httpx ' in line:
+                    if not show_httpx and ' httpx |' in line:
                         continue
                     if any(r.search(line) for r in filter_regexes):
                         continue
                     if match_regexes:
                         if not any(r.search(line) for r in match_regexes):
                             continue
-                    print(line)
+                    print(highlighter(line))
                 else:
                     f.seek(last_write_pos)
                     time.sleep(sleep)
@@ -102,8 +93,10 @@ if __name__ == '__main__':
         '--patterns',
         nargs='+',
         type=regex_colors,
-        help='Regex patterns to pass to Rich. Requires "rich" to be installed.\n'
-             r'e.g.,--paterns  "\d+,blue on white,red on green" "\w,red,green"'
+        help='Regex patterns to pass to Rich. Requires "rich" to be '
+             r'installed.\ne.g.,--paterns  "\d+, blue on white,red on green" '
+             r'"\w, red,green"\nThe pattern is "{regex}, {colors},..." where '
+             '{colors} will be cycled over all matches.'
     )
     parser.add_argument(
         '-m',
@@ -123,7 +116,8 @@ if __name__ == '__main__':
         '--show-httpx',
         default=False,
         action='store_true',
-        help='Flag to enable showing logs created by "httpx" in the tail output.'
+        help='Flag to enable showing logs created '
+             'by "httpx" in the tail output.'
     )
     args = parser.parse_args()
 
@@ -132,5 +126,5 @@ if __name__ == '__main__':
         color_regexes=args.patterns,
         match_regexes=args.matches,
         filter_regexes=args.filters,
-        show_https=args.show_httpx,
+        show_httpx=args.show_httpx,
     )

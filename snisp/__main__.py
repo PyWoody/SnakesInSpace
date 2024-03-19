@@ -17,7 +17,7 @@ except Exception:
 
 def regex_colors(arg):
     try:
-        args = arg.split(',')
+        args = arg.split(', ')
         regex = re.compile(rf'{args[0]}')
         colors = itertools.cycle(args[1:])
         return regex, colors
@@ -50,7 +50,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '-v', '-version', action='version', version=f'%(prog)s {VERSION}'
 )
-subparsers  = parser.add_subparsers(
+subparsers = parser.add_subparsers(
     title='subcommands',
     dest='subparsers',
     metavar='',
@@ -109,7 +109,7 @@ interactive_parser.add_argument(
     help='Existing SpaceTraders token. Optional.'
 )
 
-tail_parser  = subparsers.add_parser(
+tail_parser = subparsers.add_parser(
     'tail',
     allow_abbrev=False,
     formatter_class=argparse.RawTextHelpFormatter,
@@ -129,7 +129,7 @@ tail_parser.add_argument(
     type=regex_colors,
     help='Regex patterns to pass to Rich. Requires "rich" to be installed.\n'
          r'e.g.,--paterns  "\d+,blue on white,red on green" "\w,red,green"'
-         'The pattern is "{regex},{colors},..." where {colors} will be'
+         '\nThe pattern is "{regex}, {colors},..." where {colors} will be'
          'cycled over all matches.'
 )
 tail_parser.add_argument(
@@ -225,7 +225,7 @@ if _subparser := args.subparsers:
             color_regexes=args.patterns,
             match_regexes=args.matches,
             filter_regexes=args.filters,
-            show_https=args.show_httpx,
+            show_httpx=args.show_httpx,
         )
     elif _subparser == 'interactive':
         try:
@@ -238,5 +238,5 @@ if _subparser := args.subparsers:
             ship = next(iter(agent.fleet))
         except snisp.exceptions.SpaceUserError as e:
             print(f'WARNING: Could not Access Agent. {str(e)}')
-        import readline
+        import readline  # noqa: F401
         code.InteractiveConsole(locals=locals()).interact()
