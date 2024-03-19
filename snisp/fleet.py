@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Fleet:
 
-    """
-    Fleet is the top-level class for accessing Ship
-    """
+    """Fleet is the top-level class for accessing Ships"""
 
     def __init__(self, agent):
         self.agent = agent
@@ -30,6 +28,15 @@ class Fleet:
 
     @retry()
     def __call__(self, ship_symbol):
+        """
+        Retrieves a Ship instance
+
+        Args:
+            ship_symbol: The symbol for the ship to retrieve
+
+        Returns:
+            Ship
+        """
         # Equivalent to ship.refresh()
         ship_symbol = ship_symbol.upper()
         response = self.agent.client.get(f'/my/ships/{ship_symbol}')
@@ -51,22 +58,46 @@ class Fleet:
         return self.agent.client.get('/my/ships', params=params)
 
     def drones(self):
+        """
+        Yields Ships where ship.frame.symbol == 'FRAME_DRONE'
+
+        Yields:
+            Ship
+        """
         for ship in self:
             if ship.frame.symbol == 'FRAME_DRONE':
                 yield ship
 
     def freighters(self):
+        """
+        Yields Ships where 'FREIGHTER' in ship.frame.symbol
+
+        Yields:
+            Ship
+        """
         for ship in self:
             if 'FREIGHTER' in ship.frame.symbol:
                 yield ship
 
     def mining_drones(self):
+        """
+        Yields Ships that are Drones and have a Mining Laser Mount
+
+        Yields:
+            Ship
+        """
         for drone in self.drones():
             for mount in drone.mounts:
                 if mount.symbol.upper().startswith('MOUNT_MINING_LASER_'):
                     yield drone
 
     def siphon_drones(self):
+        """
+        Yields Ships that are Drones and have a Gas Siphon Mount
+
+        Yields:
+            Ship
+        """
         for drone in self.drones():
             for mount in drone.mounts:
                 if mount.symbol.upper().startswith('MOUNT_GAS_SIPHON_'):
@@ -78,12 +109,23 @@ class Fleet:
                 yield ship
 
     def ships(self):
+        """Yields Ships that are neither Drone nor Probes
+
+        Yields:
+            Ship
+        """
         for ship in self:
             if 'DRONE' not in ship.frame.symbol:
                 if 'PROBE' not in ship.frame.symbol:
                     yield ship
 
     def shuttles(self):
+        """
+        Yields Ships where 'SHUTTLE' in ship.frame.symbol
+
+        Yields:
+            Ship
+        """
         for ship in self:
             if 'SHUTTLE' in ship.frame.symbol:
                 yield ship
@@ -91,6 +133,7 @@ class Fleet:
 
 class Ship(utils.AbstractJSONItem):
 
+    """A Ship can be a Drone, Probe, Freighter, etc."""
 
     def __init__(self, agent, ship_data):
         self.agent = agent
@@ -99,8 +142,14 @@ class Ship(utils.AbstractJSONItem):
     @property
     def arrival(self):
         """
-        Returns the number of seconds until the Ship reaches
-        the destination if it's IN_TRANSIT; else, 0
+        Property that returns the number of seconds until the Ship reaches
+        the destination
+
+        Blocks:
+            False
+
+        Returns:
+            int: sceond to arrival if ship is IN_TRANSIT; else, 0
         """
         if self.nav.status == 'IN_TRANSIT':
             arrival = datetime.fromisoformat(self.nav.route.arrival)
@@ -110,7 +159,14 @@ class Ship(utils.AbstractJSONItem):
 
     @property
     def location(self):
-        """Property for the Ship's current Location"""
+        """Property for the Ship's current Location
+
+        Blocks:
+            False
+
+        Returns:
+            snisp.system.Location: Ship's current Location
+        """
         return systems.Location(self.agent, self.to_dict())
 
     @property
@@ -121,6 +177,12 @@ class Ship(utils.AbstractJSONItem):
 
         .chart, .scan, and .survey are monkey-patched to have the
         ship already loaded as the first argument
+
+        Blocks:
+            False
+
+        Returns:
+            snisp.waypoints.Waypoints: Waypoints for the Ship's Location
         """
         waypoints = Waypoints(self.agent, self.location)
         waypoints.chart = functools.partial(waypoints.chart, self)
@@ -131,8 +193,14 @@ class Ship(utils.AbstractJSONItem):
     @property
     def markets(self):
         """
-        Property that returns the snisp.markets.Markets 
+        Property that returns the snisp.markets.Markets
         for the Ship's current System
+
+        Blocks:
+            False
+
+        Returns:
+            snisp.markets.Markets: Markets for the Ship's Location
         """
         return Markets(self, self.location)
 
@@ -141,6 +209,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns the snisp.shipyards.Shipyards
         for the Ship's current System
+
+        Blocks:
+            False
+
+        Returns:
+            snisp.shipyards.Shipyards: Shipyards for the Ship's Location
         """
         return Shipyards(self, self.location)
 
@@ -152,6 +226,12 @@ class Ship(utils.AbstractJSONItem):
 
         .scan will be monkey-patched  to have the ship already
         loaded as the first argument
+
+        Blocks:
+            False
+
+        Returns:
+            snisp.systems.System: System for the Ship's Location
         """
         _system = System(self.agent)
         _system.scan = functools.partial(_system.scan, self)
@@ -162,6 +242,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship is DOCKED or IN_ORBIT
         at a Market; else False
+
+        Blocks:
+            False
+
+        Returns:
+            bool
         """
         if self.nav.status != 'IN_TRANSIT':
             waypoint = self.waypoints.get()
@@ -175,6 +261,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship is DOCKED or IN_ORBIT
         at a Shipyard; else False
+
+        Blocks:
+            False
+
+        Returns:
+                bool
         """
         if self.nav.status != 'IN_TRANSIT':
             waypoint = self.waypoints.get()
@@ -188,6 +280,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship has a Mining Mount installed
         and can mine; else, False
+
+        Blocks:
+            False
+
+        Returns:
+                bool
         """
         for mount in self.mounts:
             if mount.symbol.upper().startswith('MOUNT_MINING_LASER_'):
@@ -199,6 +297,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship has a Gas Processor
         Module installed and refine Gas; else, False
+
+        Blocks:
+            False
+
+        Returns:
+                bool
         """
         for module in self.modules:
             if module.symbol.upper().startswith('MODULE_GAS_PROCESSOR_'):
@@ -210,6 +314,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship has a Mineral Processor
         Module installed and can refine Ore; else, False
+
+        Blocks:
+            False
+
+        Returns:
+                bool
         """
         for module in self.modules:
             if module.symbol.upper().startswith('MODULE_MINERAL_PROCESSOR_'):
@@ -221,6 +331,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship has a Gas Siphon
         Mount installed and can siphon Gas; else, False
+
+        Blocks:
+            False
+
+        Returns:
+                bool
         """
         for mount in self.mounts:
             if mount.symbol.upper().startswith('MOUNT_GAS_SIPHON_'):
@@ -232,6 +348,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Property that returns True if the Ship has a Surveyor
         Mount installed and can survey; else, False
+
+        Blocks:
+            False
+
+        Returns:
+                bool
         """
         for mount in self.mounts:
             if mount.symbol.upper().startswith('MOUNT_SURVEYOR_'):
@@ -245,8 +367,17 @@ class Ship(utils.AbstractJSONItem):
 
     def closest(self, *iterables):
         """
-        Iterates over supplied iterables and returns the closest Waypoint
+        Iterates over supplied *iterables and returns the closest Waypoint
         to the Ship's current location
+
+        Args:
+            *iterables: Waypoints or Waypoint subclass types
+
+        Blocks:
+            False
+
+        Returns:
+            Waypoint or Waypoint subclass
         """
         try:
             return min(
@@ -257,8 +388,17 @@ class Ship(utils.AbstractJSONItem):
 
     def farthest(self, *iterables):
         """
-        Iterates over supplied iterables and returns the farthest Waypoint
+        Iterates over supplied *iterables and returns the farthest Waypoint
         to the Ship's current location
+
+        Args:
+            *iterables: Waypoints or Waypoint subclass types
+
+        Blocks:
+            False
+
+        Returns:
+            Waypoint or Waypoint subclass
         """
         try:
             return max(
@@ -268,7 +408,17 @@ class Ship(utils.AbstractJSONItem):
             return
 
     def distance(self, destination):
-        """Returns the distance between the Ship and Waypoint"""
+        """Returns the distance between the Ship and Waypoint
+
+        Args:
+            destination: Waypoint or Waypoint subclass type
+
+        Blocks:
+            False
+
+        Returns:
+            int
+        """
         return utils.calculate_distance(self, destination)
 
     def closest_fuel(self):
@@ -277,6 +427,12 @@ class Ship(utils.AbstractJSONItem):
 
         This is a time-consuming operation. The Library will do it's best
         to cache the result and use the cache on all subsequent calls
+
+        Blocks:
+            False
+
+        Returns:
+            Waypoint or Waypoint subclass
         """
         return self.closest(self.markets.fuel_stations())
 
@@ -318,8 +474,12 @@ class Ship(utils.AbstractJSONItem):
         An Extraction causes a cooldown period. The method will
         automatically block if the Ship is in a cooldown period.
 
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+                  and/or cooldown has passed
 
-        Returns the Extraction result
+        Returns:
+            Extraction
         """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/extract'
@@ -352,7 +512,15 @@ class Ship(utils.AbstractJSONItem):
         An Extraction causes a cooldown period. The method will
         automatically block if the Ship is in a cooldown period.
 
-        Returns the ExtractionWithSurvey result
+        Args:
+            survey: A Survey from a self.survey().surveys
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+                  and/or cooldown has passed
+
+        Returns:
+            ExtractionWithSurvey
         """
         try:
             survey = survey.to_dict()
@@ -378,7 +546,20 @@ class Ship(utils.AbstractJSONItem):
     @transit
     @docked
     def install_mount(self, mount_symbol):
-        """Not currently implemented by SpaceTraders"""
+        """
+        Not currently implemented by SpaceTraders
+
+        Installs the listed Mount onto the ship. Must be at a shipyard
+
+        Args:
+            mount_symbol: Symbol of the Mount to install
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+           Mounts: The Ship's current Mounts
+        """
         mount_symbol = mount_symbol.upper()
         if mount_symbol not in utils.SHIP_MOUNTS:
             raise exceptions.SpaceAttributeError(
@@ -407,6 +588,12 @@ class Ship(utils.AbstractJSONItem):
         """
         Jettison the number of units for the symbol from the Ship's
         cargo.
+
+        Args:
+            symbol: The symbol of the item to jettison
+
+        Kwargs:
+            units: The number of units to jettison. Default is 1.
         """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/jettison',
@@ -426,9 +613,15 @@ class Ship(utils.AbstractJSONItem):
     @in_orbit
     def jump(self, waypoint):
         """
-        Jump Ship to Waypoint.
+        Jump Ship to Waypoint. Requires the Ship to be at a full constructed
+        JumpGate
 
-        Requires the Ship to have a Jump Drive
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+                  and/or cooldown has passed
+
+        Args:
+            waypoint: Waypoint or Waypoint subclass type
         """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/jump',
@@ -458,8 +651,29 @@ class Ship(utils.AbstractJSONItem):
         The method will automatically attempt to refuel and modify the Ship's
         flight_mode as needed.
 
+        done_callback accepteds a callback function that will be performed
+        before returning control to the thread
+
         Failed attempts to reach intermediate Waypoints or refuel attempts
         will be logged at level INFO
+
+        Ships that cannot reach their destinations will be added to the Ship's
+        agent.dead_ships dictionary. Dead Ships will not be returned on further
+        agent.fleet iterations
+
+        Args:
+            waypoint: Waypoint or Waypoint subclass type
+
+        Kwargs:
+            flight_mode: Starting flight_mode. Default is CRUISE
+            done_callback: callable() item that will be executed before
+                           returning
+
+        Blocks:
+            True: until Ship reaches destination
+
+        Returns:
+            NavigateInsufficientFuelError: Ran out of Fuel
         """
         # A complete mess
         if self.nav.waypoint_symbol == waypoint.symbol:
@@ -605,8 +819,22 @@ class Ship(utils.AbstractJSONItem):
         If the Ship is already IN_TRANSIT, the method will block
         until it reaches the previous destination first.
 
-        Optional "raise_error" kwarg can suppress or raise Exceptions.
+        Optional raise_error kwarg can suppress or raise Exceptions.
         Default is True
+
+        Args:
+            waypoint: Waypoint or Waypoint subclass type
+
+        Kwargs:
+            raise_error: If False, errors will be suppressed and returned.
+                         Default True
+
+        Blocks:
+            True: Will block if Ship is already IN_TRANSIT. Oherwise, False
+
+        Returns:
+            Exception: Returns an Exception if one is raised and rase_error
+                       is False
         """
         if self.nav.waypoint_symbol == waypoint.symbol:
             return
@@ -641,7 +869,11 @@ class Ship(utils.AbstractJSONItem):
         and the Agent associated with the Ship must not already have an active
         Contract
 
-        Returns the new Contract
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Contract
         """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/negotiate/contract'
@@ -658,8 +890,8 @@ class Ship(utils.AbstractJSONItem):
         """
         Orbit the Ship at the current Waypoint, if it is not already inorbit
 
-        If the Ship is IN_TRANSIT, the method will block unti the Ship
-        has reached the destination
+        Blocks:
+            True: Won't be executed until Ship reaches destination
         """
         if self.nav.status != 'IN_ORBIT':
             response = self.agent.client.post(
@@ -690,7 +922,21 @@ class Ship(utils.AbstractJSONItem):
         agent.data.credits - buffer >= purchase price.
         To remove the buffer, just pass a 0
 
-        Returns the list of successful Transactions
+        Args:
+            goods: Good type. Symbol of item to purchase
+
+        Kwargs:
+            max_units: Up to max_units to purchase. Default is until the ship's
+                       cargo is at capacity
+            buffer: Credit buffer. Up to max_units will be purchased so far as
+                    the purchase amount - agent.data.credits - buffer > 0.
+                    Default is 200_000
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transactions:  List of successful Transactions or empty list
         """
         goods = goods.upper()
         if goods not in utils.GOODS_TYPES:
@@ -765,7 +1011,15 @@ class Ship(utils.AbstractJSONItem):
         Examples of exceptions are insufficient funds, cargo capacity,
         or if at an invalid waypoint
 
-        Returns the  Transacaction
+        Args:
+            goods: Good type. Symbol of item to purchase
+            units: Number of units to purchase
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transacaction
         """
         goods = goods.upper()
         if goods not in utils.GOODS_TYPES:
@@ -794,6 +1048,24 @@ class Ship(utils.AbstractJSONItem):
     @transit
     @docked
     def refuel(self, *, units=0, from_cargo=False, ignore_errors=False):
+        """
+        Refuels the Ship if the Ship is at a Waypoint that sells Fuel, or,
+        if from_cargo is True, Refuels from the Ship cargo
+
+        Kwargs:
+            units: If greather than 0, restrict to N units being refilled.
+                   Default 0 will refill the fuel tank completely
+            from_cargo: If True, refuel from Cargo. Default False
+            ignore_errors: If True, errors will be suppressed and returned.
+                           Default False
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Exception: Returns an Exception if one occurs and
+                       ignore_errors is True
+        """
         if self.fuel.capacity == self.fuel.current:
             return
         payload = {'fromCargo': from_cargo}
@@ -834,6 +1106,16 @@ class Ship(utils.AbstractJSONItem):
     @retry()
     @cooldown
     def refine(self, produce):
+        """Refine Ore into a product
+
+        Converts 30 units of Ore into 1 inut of Product
+
+        Args:
+            produce: The symbol to produce. i.e., "IRON"
+
+        Blocks:
+            True: Blocks during cooldown
+        """
         if produce not in utils.REFINABLE_SYMBOLS:
             raise exceptions.ShipInvalidRefineryGoodError(
                 f'{produce} is not an acceptable produce. '
@@ -854,7 +1136,11 @@ class Ship(utils.AbstractJSONItem):
 
     @retry()
     def refresh(self):
-        """Returns a new Ship class object of the current ship"""
+        """Returns a new Ship class object of the current ship
+
+        Returns:
+            A new Ship instead from self
+        """
         response = self.agent.client.get(f'/my/ships/{self.symbol}')
         return Ship(self.agent, response.json()['data'])
 
@@ -862,6 +1148,20 @@ class Ship(utils.AbstractJSONItem):
     @transit
     @docked
     def remove_mount(self, mount_symbol):
+        """
+        Not currently implemented by SpaceTraders
+
+        Removes the listed Mount onto the ship. Must be at a Shipyard
+
+        Args:
+            mount_symbol: Symbol of the Mount to remove
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+           Mounts: The Ship's current Mounts
+        """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/mounts/remove',
             json={'symbol': mount_symbol}
@@ -880,6 +1180,21 @@ class Ship(utils.AbstractJSONItem):
     @in_orbit
     @cooldown
     def scan(self):
+        """
+        Scan current System for ships
+
+        NOTE: SpaceTraders does not make it explicit who the owner of a
+              scanned ship is, so SnakesInSpace currently assumes scanned
+              ships are owned by the Agent. Attempting to perform actions on
+              a ship you do not own will lead to undefined consequences.
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+                  and/or cooldown has passed
+
+        Yields:
+            Ships
+        """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/scan/ships'
         )
@@ -889,19 +1204,35 @@ class Ship(utils.AbstractJSONItem):
             yield Ship(self.agent, ship)
 
     @transit
-    def sell_all(self, good, units=0):
+    def sell_all(self, goods, units=0):
+        """
+        Sell goods from the Ship's cargo.
+
+        Args:
+            goods: Good type. Symbol of item to sell
+
+        Kwargs:
+            units: The number of units to sell. If units < 0, all will be sold
+                   Default 0
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transactions:  List of successful Transactions or empty list
+        """
         transactions = []
         units = int(units)
         if units <= 0:
             units = next(
                 (
-                    i.units for i in self.cargo.inventory if i.symbol == good
+                    i.units for i in self.cargo.inventory if i.symbol == goods
                 ), None
             )
             if units is None:
                 logger.warning(
                     f'{self.registration.role}: {self.symbol} | '
-                    'Attempting to sell {good} which '
+                    'Attempting to sell {goods} which '
                     'is not currently in its cargo hold'
                 )
                 return transactions
@@ -910,7 +1241,7 @@ class Ship(utils.AbstractJSONItem):
             logger.warning(
                 f'{self.registration.role}: {self.symbol} | '
                 f'No market at {self.location.waypoint}. '
-                f'Cannot sell {units:,} of {good}.'
+                f'Cannot sell {units:,} of {goods}.'
             )
             return transactions
         trade_volume = next(
@@ -918,12 +1249,12 @@ class Ship(utils.AbstractJSONItem):
                 i.trade_volume
                 for i in market_data.trade_goods
                 if i.type == 'IMPORT'
-                if i.symbol == good
+                if i.symbol == goods
             ), None
         )
         if trade_volume is None:
             logger.warning(
-                f'Market {market_data.symbol} no longer trading {good}'
+                f'Market {market_data.symbol} no longer trading {goods}'
             )
             return transactions
         while units:
@@ -933,13 +1264,26 @@ class Ship(utils.AbstractJSONItem):
                 sell_units = trade_volume
             else:
                 units = 0
-            transactions.append(self.sell(good, sell_units))
+            transactions.append(self.sell(goods, sell_units))
         self.agent.recent_transactions.extendleft(transactions)
         return transactions
 
     def sell_off_cargo(self, trade_symbol=None):
-        # Just sell to the closest and move on
-        # The best will probably be the dest anyways
+        """
+        Sell all goods from the Ship's cargo. Will automatically navigate
+        to closest Market which sells the respective goods
+
+        Kwargs:
+            trade_symbol: Good type. Symbol of item to sell otherwise sells
+                          everything in ship.cargo.inventory. Default is None
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transactions:  List of successful Transactions or empty list
+        """
+
         transactions = []
         for item in self.cargo.inventory:
             if trade_symbol and item.symbol != trade_symbol:
@@ -964,6 +1308,19 @@ class Ship(utils.AbstractJSONItem):
     @transit
     @docked
     def sell(self, goods, units):
+        """
+        Sell goods from the Ship's cargo.
+
+        Args:
+            goods: Good type. Symbol of item to sell
+            units: The number of units to sell
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transaction
+        """
         goods = goods.upper()
         if goods not in utils.GOODS_TYPES:
             raise exceptions.SpaceAttributeError(
@@ -992,6 +1349,22 @@ class Ship(utils.AbstractJSONItem):
     @cooldown
     @in_orbit
     def siphon(self):
+        """
+        Make a siphon at the current Waypoint.
+
+        Exceptions will be raised if the Ship is at an invalid Waypoint
+        type or if it does not have a Siphon Mount
+
+        A Siphon causes a cooldown period. The method will
+        automatically block if the Ship is in a cooldown period.
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+                  and/or cooldown has passed
+
+        Returns:
+            Siphon
+        """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/siphon'
         )
@@ -1008,6 +1381,21 @@ class Ship(utils.AbstractJSONItem):
     @retry()
     @transit
     def transfer(self, receive_ship, *, symbol, units):
+        """
+        Transfer cargo from Ship to another Ship
+
+        Updates both Ships' cargos. Requires both Ships to be at the
+        same Waypoint
+
+        Args:
+            receive_ship: The snisp.fleet.Ship instance of another Ship
+
+        Kwargs:
+            symbol: The symbol for the goods to transfer
+            units: The number of units to transfer
+        Blocks:
+            True: until both Ships reach common Waypoint
+        """
         symbol = symbol.upper()
         if symbol not in utils.GOODS_TYPES:
             raise exceptions.SpaceAttributeError(
@@ -1069,6 +1457,17 @@ class Ship(utils.AbstractJSONItem):
     @transit
     @in_orbit
     def warp(self, waypoint):
+        """
+        Warp Ship to Waypoint.
+
+        Requires the Ship to have a Warp Drive
+
+        Args:
+            waypoint: Waypoint or Waypoint subclass type
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+        """
         response = self.agent.client.post(
             f'/my/ships/{self.symbol}/warp',
             json={'waypointSymbol': waypoint.symbol}
@@ -1086,6 +1485,15 @@ class Ship(utils.AbstractJSONItem):
     @retry()
     @transit
     def update_flight_mode(self, mode):
+        """
+        Updates the Ships flight mode if needed
+
+        Args:
+            mode: New flight_mode
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+        """
         mode = mode.strip().upper()
         if mode not in utils.FLIGHT_MODES:
             raise exceptions.SpaceAttributeError(
