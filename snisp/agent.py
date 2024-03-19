@@ -92,12 +92,15 @@ class Agent:
 
 class PlayerData(utils.AbstractJSONItem):
 
+    """Your Agent's current data"""
+
     def __init__(self, agent, ship_data):
         self.agent = agent
         self._data = ship_data
 
 
 def reset():  # pragma: no cover
+    """Removes the user_config.json file if it exists"""
     config_file = os.path.abspath(
         os.path.join(os.path.dirname(__file__), 'data', 'user_config.json')
     )
