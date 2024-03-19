@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 class Agent:
 
+    """Agent represents your Player in SpaceTraders"""
+
     def __init__(self, *, symbol='', faction='', email='', token=''):
         database.setup()
         self.lock = threading.RLock()
@@ -52,10 +54,16 @@ class Agent:
 
     @property
     def client(self):
+        """Property that returns the modified HTTPX Client"""
         return self.__client
 
     @property
     def data(self):
+        """Your Agent's current data
+
+        Returns:
+            PlayerData
+        """
         response = self.client.get('/my/agent')
         return PlayerData(self, response.json()['data'])
 
