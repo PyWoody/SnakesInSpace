@@ -977,7 +977,8 @@ class Ship(utils.AbstractJSONItem):
                 break
         if trade_volume is None:
             logger.warning(
-                f'Market {self.location.waypoint} no longer trading {trade_symbol}'
+                f'Market {self.location.waypoint} no '
+                f'longer trading {trade_symbol}'
             )
             return transactions
         with self.agent.lock:
@@ -1239,7 +1240,8 @@ class Ship(utils.AbstractJSONItem):
         if units <= 0:
             units = next(
                 (
-                    i.units for i in self.cargo.inventory if i.symbol == trade_symbol
+                    i.units
+                    for i in self.cargo.inventory if i.symbol == trade_symbol
                 ), None
             )
             if units is None:

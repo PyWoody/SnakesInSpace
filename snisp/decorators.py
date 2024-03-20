@@ -22,7 +22,6 @@ class CachedRateLimiter:
     def __call__(self, func):
 
         @functools.wraps(func)
-
         def inner(*args, **kwargs):
             if args[0].testing:
                 return func(*args, **kwargs)
@@ -50,7 +49,6 @@ class CachedRateLimiter:
 def cooldown(func):
 
     @functools.wraps(func)
-
     def inner(*args, **kwargs):
         for ship in itertools.chain(args, kwargs.values()):
             if isinstance(ship, snisp.fleet.Ship):
@@ -66,7 +64,6 @@ def cooldown(func):
 def docked(func):
 
     @functools.wraps(func)
-
     def inner(*args, **kwargs):
         for ship in itertools.chain(args, kwargs.values()):
             if isinstance(ship, snisp.fleet.Ship):
@@ -79,7 +76,6 @@ def docked(func):
 def in_orbit(func):
 
     @functools.wraps(func)
-
     def inner(*args, **kwargs):
         for ship in itertools.chain(args, kwargs.values()):
             if isinstance(ship, snisp.fleet.Ship):
@@ -94,7 +90,6 @@ def retry(jitter=.2, max_retries=5):
     def wrapper(func):
 
         @functools.wraps(func)
-
         def inner(*args, **kwargs):
             ship = args[0]
             for attempt in range(1, max_retries + 1):
@@ -143,7 +138,6 @@ def retry(jitter=.2, max_retries=5):
 def transit(func):
 
     @functools.wraps(func)
-
     def inner(*args, **kwargs):
         for ship in itertools.chain(args, kwargs.values()):
             if isinstance(ship, snisp.fleet.Ship):

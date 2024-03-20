@@ -109,7 +109,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that offers the trade
         symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -139,7 +139,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that imports the trade
         symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -168,7 +168,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that imports the trade
         symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -199,7 +199,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that exports the trade
         symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -228,7 +228,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that exchanges the trade
         symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -259,7 +259,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that exports or exchanges
         the trade symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -300,7 +300,7 @@ class Markets:
         A Ship or Probe must be at the Market to get the current
         Sell Price. Otherwise, the closest Market that exports the trade
         symbol will be returned
-        
+
         Args:
             trade_symbol: The symbol of the good to search
 
@@ -695,8 +695,8 @@ def exchange_sort_key(market_data, trade_symbol):
         trade_symbol: Symbol of the good to check
 
     Returns:
-        purchase_price: Returns purchase price of the trade good if it exchanges
-                        the trade_symbol
+        purchase_price: Returns purchase price of the trade good
+                        if it exchanges the trade_symbol
     """
     if market_data.trade_goods:
         for good in market_data.trade_goods:
