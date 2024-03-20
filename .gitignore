@@ -1,10 +1,13 @@
 .DS_Store
-*.json
 *.log
 *db.sqlite3
 *db.sqlite3-journal
 cache.db*
 .ruff_cache/
+
+# snisp specific
+snisp/data/
+user_config.json
 
 # Vim-stuff
 # Swap

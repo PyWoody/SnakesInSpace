@@ -1,0 +1,61 @@
+{
+  "data": {
+    "agent": {
+      "accountId": "string",
+      "symbol": "string",
+      "headquarters": "string",
+      "credits": 0,
+      "startingFaction": "string",
+      "shipCount": 0
+    },
+    "mounts": [
+      {
+        "symbol": "MOUNT_GAS_SIPHON_I",
+        "name": "string",
+        "description": "string",
+        "strength": 0,
+        "deposits": [
+          "QUARTZ_SAND"
+        ],
+        "requirements": {
+          "power": 0,
+          "crew": 0,
+          "slots": 0
+        }
+      },
+      {
+        "symbol": "MOUNT_GAS_SIPHON_II",
+        "name": "string",
+        "description": "string",
+        "strength": 0,
+        "deposits": [
+          "QUARTZ_SAND"
+        ],
+        "requirements": {
+          "power": 0,
+          "crew": 0,
+          "slots": 0
+        }
+      }
+    ],
+    "cargo": {
+      "capacity": 0,
+      "units": 0,
+      "inventory": [
+        {
+          "symbol": "PRECIOUS_STONES",
+          "name": "string",
+          "description": "string",
+          "units": 1
+        }
+      ]
+    },
+    "transaction": {
+      "waypointSymbol": "string",
+      "shipSymbol": "string",
+      "tradeSymbol": "string",
+      "totalPrice": 0,
+      "timestamp": "2019-08-24T14:15:22Z"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "data": {
+    "symbol": "COSMIC",
+    "name": "string",
+    "description": "string",
+    "headquarters": "string",
+    "traits": [
+      {
+        "symbol": "BUREAUCRATIC",
+        "name": "string",
+        "description": "string"
+      }
+    ],
+    "isRecruiting": true
+  }
+}

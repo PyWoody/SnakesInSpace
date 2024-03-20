@@ -1,0 +1,10 @@
+{
+  "data": {
+    "accountId": "string",
+    "symbol": "TEST_SHIP_SYMBOL",
+    "headquarters": "TEST-SYSTEM-WAYPOINT",
+    "credits": 10000,
+    "startingFaction": "string",
+    "shipCount": 0
+  }
+}

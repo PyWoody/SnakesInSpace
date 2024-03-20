@@ -1,0 +1,39 @@
+{
+  "data": {
+    "cooldown": {
+      "shipSymbol": "string",
+      "totalSeconds": 60,
+      "remainingSeconds": 59,
+      "expiration": "2019-08-24T14:15:22Z"
+    },
+    "waypoints": [
+      {
+        "symbol": "string",
+        "type": "PLANET",
+        "systemSymbol": "string",
+        "x": 0,
+        "y": 0,
+        "orbitals": [
+          {
+            "symbol": "string"
+          }
+        ],
+        "faction": {
+          "symbol": "COSMIC"
+        },
+        "traits": [
+          {
+            "symbol": "UNCHARTED",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "chart": {
+          "waypointSymbol": "string",
+          "submittedBy": "string",
+          "submittedOn": "2019-08-24T14:15:22Z"
+        }
+      }
+    ]
+  }
+}

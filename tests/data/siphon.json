@@ -1,0 +1,29 @@
+{
+  "data": {
+    "cooldown": {
+      "shipSymbol": "string",
+      "totalSeconds": 0,
+      "remainingSeconds": 0,
+      "expiration": "2019-08-24T14:15:22Z"
+    },
+    "siphon": {
+      "shipSymbol": "string",
+      "yield": {
+        "symbol": "LIQUID_HYDROGEN",
+        "units": 0
+      }
+    },
+    "cargo": {
+      "capacity": 40,
+      "units": 0,
+      "inventory": [
+        {
+          "symbol": "LIQUID_HYDROGEN",
+          "name": "string",
+          "description": "string",
+          "units": 1
+        }
+      ]
+    }
+  }
+}

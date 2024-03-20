@@ -1,0 +1,30 @@
+{
+  "data": {
+    "agent": {
+      "accountId": "string",
+      "symbol": "string",
+      "headquarters": "string",
+      "credits": 0,
+      "startingFaction": "string",
+      "shipCount": 0
+    },
+    "fuel": {
+      "current": 0,
+      "capacity": 400,
+      "consumed": {
+        "amount": 0,
+        "timestamp": "2019-08-24T14:15:22Z"
+      }
+    },
+    "transaction": {
+      "waypointSymbol": "string",
+      "shipSymbol": "string",
+      "tradeSymbol": "string",
+      "type": "PURCHASE",
+      "units": 0,
+      "pricePerUnit": 72,
+      "totalPrice": 0,
+      "timestamp": "2019-08-24T14:15:22Z"
+    }
+  }
+}

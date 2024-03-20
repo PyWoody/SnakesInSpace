@@ -1,0 +1,34 @@
+{
+  "data": {
+    "agent": {
+      "accountId": "string",
+      "symbol": "TEST_SHIP_SYMBOL",
+      "headquarters": "TEST-SYSTEM-WAYPOINT",
+      "credits": 10000,
+      "startingFaction": "string",
+      "shipCount": 0
+    },
+    "cargo": {
+      "capacity": 40,
+      "units": 0,
+      "inventory": [
+        {
+          "symbol": "PRECIOUS_STONES",
+          "name": "precious stones",
+          "description": "aka blood diamonds",
+          "units": 0
+        }
+      ]
+    },
+    "transaction": {
+      "waypointSymbol": "PURCHASE_WAYPOINT_SYMBOL",
+      "shipSymbol": "PURCHASE_SHIP_SYMBOL",
+      "tradeSymbol": "PRECIOUS_STONES",
+      "type": "PURCHASE",
+      "units": 0,
+      "pricePerUnit": 100,
+      "totalPrice": 0,
+      "timestamp": "2019-08-24T14:15:22Z"
+    }
+  }
+}

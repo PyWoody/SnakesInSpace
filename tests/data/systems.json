@@ -1,0 +1,61 @@
+{
+  "data": [
+    {
+      "symbol": "TEST-SYSTEM",
+      "sectorSymbol": "TEST",
+      "type": "NEUTRON_STAR",
+      "x": 0,
+      "y": 0,
+      "waypoints": [
+        {
+          "symbol": "string",
+          "type": "PLANET",
+          "x": 0,
+          "y": 0,
+          "orbitals": [
+            {
+              "symbol": "string"
+            }
+          ],
+          "orbits": "string"
+        }
+      ],
+      "factions": [
+        {
+          "symbol": "COSMIC"
+        }
+      ]
+    },
+    {
+      "symbol": "TEST-SYSTEM",
+      "sectorSymbol": "TEST",
+      "type": "BLACK_HOLE",
+      "x": 0,
+      "y": 0,
+      "waypoints": [
+        {
+          "symbol": "string",
+          "type": "PLANET",
+          "x": 0,
+          "y": 0,
+          "orbitals": [
+            {
+              "symbol": "string"
+            }
+          ],
+          "orbits": "string"
+        }
+      ],
+      "factions": [
+        {
+          "symbol": "ANCIENTS"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "total": 0,
+    "page": 1,
+    "limit": 10
+  }
+}

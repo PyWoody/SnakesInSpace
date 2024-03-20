@@ -1,0 +1,104 @@
+{
+  "data": {
+    "cooldown": {
+      "shipSymbol": "string",
+      "totalSeconds": 60,
+      "remainingSeconds": 59,
+      "expiration": "2019-08-24T14:15:22Z"
+    },
+    "ships": [
+      {
+        "symbol": "TEST-SCAN-SHIP-01",
+        "registration": {
+          "name": "string",
+          "factionSymbol": "string",
+          "role": "FABRICATOR"
+        },
+        "nav": {
+          "systemSymbol": "string",
+          "waypointSymbol": "string",
+          "route": {
+            "destination": {
+              "symbol": "string",
+              "type": "PLANET",
+              "systemSymbol": "string",
+              "x": 0,
+              "y": 0
+            },
+            "origin": {
+              "symbol": "string",
+              "type": "PLANET",
+              "systemSymbol": "string",
+              "x": 0,
+              "y": 0
+            },
+            "departureTime": "2019-08-24T14:15:22Z",
+            "arrival": "2019-08-24T14:15:22Z"
+          },
+          "status": "IN_TRANSIT",
+          "flightMode": "CRUISE"
+        },
+        "frame": {
+          "symbol": "string"
+        },
+        "reactor": {
+          "symbol": "string"
+        },
+        "engine": {
+          "symbol": "string"
+        },
+        "mounts": [
+          {
+            "symbol": "string"
+          }
+        ]
+      },
+      {
+        "symbol": "TEST-SCAN-SHIP-02",
+        "registration": {
+          "name": "string",
+          "factionSymbol": "string",
+          "role": "FABRICATOR"
+        },
+        "nav": {
+          "systemSymbol": "string",
+          "waypointSymbol": "string",
+          "route": {
+            "destination": {
+              "symbol": "string",
+              "type": "PLANET",
+              "systemSymbol": "string",
+              "x": 0,
+              "y": 0
+            },
+            "origin": {
+              "symbol": "string",
+              "type": "PLANET",
+              "systemSymbol": "string",
+              "x": 0,
+              "y": 0
+            },
+            "departureTime": "2019-08-24T14:15:22Z",
+            "arrival": "2019-08-24T14:15:22Z"
+          },
+          "status": "IN_TRANSIT",
+          "flightMode": "CRUISE"
+        },
+        "frame": {
+          "symbol": "string"
+        },
+        "reactor": {
+          "symbol": "string"
+        },
+        "engine": {
+          "symbol": "string"
+        },
+        "mounts": [
+          {
+            "symbol": "string"
+          }
+        ]
+      }
+    ]
+  }
+}

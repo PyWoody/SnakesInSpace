@@ -1,0 +1,13 @@
+{
+  "data": {
+    "symbol": "TEST-SYSTEM-CONSTRUCTION",
+    "materials": [
+      {
+        "tradeSymbol": "PRECIOUS_STONES",
+        "required": 0,
+        "fulfilled": 0
+      }
+    ],
+    "isComplete": true
+  }
+}

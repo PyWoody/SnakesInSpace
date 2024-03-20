@@ -1,0 +1,34 @@
+{
+  "data": {
+    "cargo": {
+      "capacity": 0,
+      "units": 0,
+      "inventory": [
+        {
+          "symbol": "IRON_ORE",
+          "name": "string",
+          "description": "string",
+          "units": 0
+        }
+      ]
+    },
+    "cooldown": {
+      "shipSymbol": "string",
+      "totalSeconds": 0,
+      "remainingSeconds": 0,
+      "expiration": "2019-08-24T14:15:22Z"
+    },
+    "produced": [
+      {
+        "tradeSymbol": "IRON",
+        "units": 1
+      }
+    ],
+    "consumed": [
+      {
+        "tradeSymbol": "IRON_ORE",
+        "units": 0
+      }
+    ]
+  }
+}

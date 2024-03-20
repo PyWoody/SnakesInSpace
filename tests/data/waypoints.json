@@ -1,0 +1,112 @@
+{
+  "data": [
+    {
+        "symbol": "TEST-SYSTEM-CLOSESTWAYPOINT",
+        "type": "PLANET",
+        "systemSymbol": "TEST-SYSTEM",
+        "x": 0,
+        "y": 0,
+        "orbitals": [
+          {
+            "symbol": "string"
+          }
+        ],
+        "orbits": "string",
+        "faction": {
+          "symbol": "COSMIC"
+        },
+        "traits": [
+          {
+            "symbol": "UNCHARTED",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "modifiers": [
+          {
+            "symbol": "STRIPPED",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "chart": {
+          "waypointSymbol": "string",
+          "submittedBy": "string",
+          "submittedOn": "2019-08-24T14:15:22Z"
+        },
+        "isUnderConstruction": true
+    },
+    {
+        "symbol": "TEST-SYSTEM-WAYPOINT",
+        "type": "PLANET",
+        "systemSymbol": "TEST-SYSTEM",
+        "x": 50,
+        "y": 50,
+        "orbitals": [
+          {
+            "symbol": "string"
+          }
+        ],
+        "orbits": "string",
+        "faction": {
+          "symbol": "COSMIC"
+        },
+        "traits": [
+          {
+            "symbol": "MARKETPLACE",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "modifiers": [
+          {
+            "symbol": "STRIPPED",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "chart": {
+          "waypointSymbol": "string",
+          "submittedBy": "string",
+          "submittedOn": "2019-08-24T14:15:22Z"
+        },
+        "isUnderConstruction": true
+    },
+    {
+        "symbol": "TEST-SYSTEM-FARTHESTWAYPOINT",
+        "type": "PLANET",
+        "systemSymbol": "TEST-SYSTEM",
+        "x": 100,
+        "y": 100,
+        "orbitals": [
+          {
+            "symbol": "string"
+          }
+        ],
+        "orbits": "string",
+        "faction": {
+          "symbol": "COSMIC"
+        },
+        "traits": [
+          {
+            "symbol": "UNCHARTED",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "modifiers": [
+          {
+            "symbol": "STRIPPED",
+            "name": "string",
+            "description": "string"
+          }
+        ],
+        "chart": {
+          "waypointSymbol": "string",
+          "submittedBy": "string",
+          "submittedOn": "2019-08-24T14:15:22Z"
+        },
+        "isUnderConstruction": true
+      }
+  ]
+}

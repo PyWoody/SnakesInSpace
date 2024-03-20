@@ -1,0 +1,57 @@
+{
+  "data": {
+    "cooldown": {
+      "shipSymbol": "string",
+      "totalSeconds": 60,
+      "remainingSeconds": 59,
+      "expiration": "2019-08-24T14:15:22Z"
+    },
+    "surveys": [
+      {
+        "signature": "SURVEY-1",
+        "symbol": "string",
+        "deposits": [
+          {
+            "symbol": "PRECIOUS_STONES"
+          },
+          {
+            "symbol": "IRON_ORE"
+          },
+          {
+            "symbol": "IRON_ORE"
+          }
+        ],
+        "expiration": "2019-08-24T14:15:22Z",
+        "size": "SMALL"
+      },
+      {
+        "signature": "SURVEY-2",
+        "symbol": "string",
+        "deposits": [
+          {
+            "symbol": "PRECIOUS_STONES"
+          }
+        ],
+        "expiration": "2019-08-24T14:15:22Z",
+        "size": "SMALL"
+      },
+      {
+        "signature": "SURVEY-3",
+        "symbol": "string",
+        "deposits": [
+          {
+            "symbol": "PRECIOUS_STONES"
+          },
+          {
+            "symbol": "IRON_ORE"
+          },
+          {
+            "symbol": "IRON_ORE"
+          }
+        ],
+        "expiration": "2019-08-24T14:15:22Z",
+        "size": "LARGE"
+      }
+    ]
+  }
+}

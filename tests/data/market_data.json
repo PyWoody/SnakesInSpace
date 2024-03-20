@@ -1,0 +1,67 @@
+{
+  "data": {
+    "symbol": "TEST-SYSTEM-WAYPOINT",
+    "exports": [
+      {
+        "symbol": "PRECIOUS_STONES",
+        "name": "string",
+        "description": "string"
+      }
+    ],
+    "imports": [
+      {
+        "symbol": "PRECIOUS_STONES",
+        "name": "string",
+        "description": "string"
+      }
+    ],
+    "exchange": [
+      {
+        "symbol": "PRECIOUS_STONES",
+        "name": "string",
+        "description": "string"
+      }
+    ],
+    "transactions": [
+      {
+        "waypointSymbol": "string",
+        "shipSymbol": "string",
+        "tradeSymbol": "string",
+        "type": "PURCHASE",
+        "units": 0,
+        "pricePerUnit": 0,
+        "totalPrice": 0,
+        "timestamp": "2019-08-24T14:15:22Z"
+      }
+    ],
+    "tradeGoods": [
+      {
+        "symbol": "PRECIOUS_STONES",
+        "type": "IMPORT",
+        "tradeVolume": 1,
+        "supply": "SCARCE",
+        "activity": "WEAK",
+        "purchasePrice": 100,
+        "sellPrice": 10
+      },
+      {
+        "symbol": "PRECIOUS_STONES",
+        "type": "EXCHANGE",
+        "tradeVolume": 1,
+        "supply": "SCARCE",
+        "activity": "WEAK",
+        "purchasePrice": 100,
+        "sellPrice": 10
+      },
+      {
+        "symbol": "PRECIOUS_STONES",
+        "type": "EXPORT",
+        "tradeVolume": 1,
+        "supply": "SCARCE",
+        "activity": "WEAK",
+        "purchasePrice": 100,
+        "sellPrice": 10
+      }
+    ]
+  }
+}
