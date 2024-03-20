@@ -660,7 +660,7 @@ class Ship(utils.AbstractJSONItem):
         done_callback=None,
     ):
         """
-        Navigates the Ship to the destination Waypiont.
+        Navigates the Ship to the destination Waypoint.
 
         The method will block until the Ship has reached the destination.
 
@@ -741,7 +741,7 @@ class Ship(utils.AbstractJSONItem):
                     # but not make it to the waypoint from there.
                     # It would just continually cycle fuel stations if
                     # the flight_mode was not switched to drift.
-                    # If it's *already* as DRIFT at this piont, well, :/
+                    # If it's *already* as DRIFT at this point, well, :/
                     if self.nav.flight_mode == 'DRIFT':
                         if err := self.navigate(waypoint, raise_error=False):
                             try:

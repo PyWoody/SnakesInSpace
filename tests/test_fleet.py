@@ -3671,7 +3671,7 @@ class AutoPilotSideEffect:
         self.reset()
 
     def update_flight_mode(self, request, route):
-        # Double check it isn't dup'ing the waypiont symbol here
+        # Double check it isn't dup'ing the waypoint symbol here
         payload = json.loads(request.content.decode('utf8'))
         self.ship['data']['nav']['flightMode'] = payload['flightMode']
         self.data['data']['nav']['flightMode'] = payload['flightMode']

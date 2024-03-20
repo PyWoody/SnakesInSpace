@@ -398,7 +398,7 @@ class TestWaypoint:
         waypoint = snisp.waypoints.Waypoint(self.agent, waypoint_data['data'])
 
         assert waypoint.location.sector == waypoint_data['data']['systemSymbol'].split('-')[0]  # noqa: E501
-        assert waypoint.location.system == waypoint_data['data']['systemSymbol']
+        assert waypoint.location.system == waypoint_data['data']['systemSymbol']  # noqa: E501
         assert waypoint.location.waypoint == waypoint_data['data']['symbol']
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
