@@ -1367,6 +1367,7 @@ To avoid unnecessary blocking, make sure to perform any `ship` action in its own
 ...     while True:
 ...         ship.autopilot(asteroid)
 ...         while ship.cargo.units < ship.cargo.capacity:
+...             extraction = ship.extract()  # ship.extract will handle Cooldowns automatically
 ...             if extraction.units == 0:
 ...                 # Asteroid has been stripped
 ...                 return
