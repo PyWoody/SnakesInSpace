@@ -37,7 +37,6 @@ class Fleet:
         Returns:
             Ship
         """
-        # Equivalent to ship.refresh()
         ship_symbol = ship_symbol.upper()
         response = self.agent.client.get(f'/my/ships/{ship_symbol}')
         return Ship(self.agent, response.json()['data'])
@@ -110,6 +109,12 @@ class Fleet:
                     yield drone
 
     def probes(self):
+        """
+        Yields Ships where ship.frame.symbol == 'FRAME_PROBE'
+
+        Yields:
+            Ship
+        """
         for ship in self:
             if ship.frame.symbol == 'FRAME_PROBE':
                 yield ship
@@ -450,6 +455,9 @@ class Ship(utils.AbstractJSONItem):
 
         If the Ship is IN_TRANSIT, the method will block unti the Ship
         has reached the destination
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
         """
         if self.nav.status != 'DOCKED':
             response = self.agent.client.post(
@@ -913,9 +921,9 @@ class Ship(utils.AbstractJSONItem):
             return data
 
     @transit
-    def autopurchase(self, goods, max_units=0, buffer=200_000):
+    def autopurchase(self, trade_symbol, max_units=0, buffer=200_000):
         """
-        Purchases up to max_goods of goods, depending on the Ship's
+        Purchases up to max_units of trade_symbol, depending on the Ship's
         cargo capacity and the Agent's current credits with regards to
         the buffer
 
@@ -931,7 +939,7 @@ class Ship(utils.AbstractJSONItem):
         To remove the buffer, just pass a 0
 
         Args:
-            goods: Good type. Symbol of item to purchase.
+            trade_symbol: Symbol of item to purchase.
 
         Kwargs:
             max_units: Up to max_units to purchase. Default is until the ship's
@@ -946,10 +954,10 @@ class Ship(utils.AbstractJSONItem):
         Returns:
             Transactions:  List of successful Transactions or empty list
         """
-        goods = goods.upper()
-        if goods not in utils.GOODS_TYPES:
+        trade_symbol = trade_symbol.upper()
+        if trade_symbol not in utils.GOODS_TYPES:
             raise exceptions.SpaceAttributeError(
-                f'{goods} is not an acceptable goods type. '
+                f'{trade_symbol} is not an acceptable goods type. '
                 'See snisp.utils.GOODS_TYPES for acceptable goods.'
             )
         max_units = int(max_units)
@@ -961,32 +969,30 @@ class Ship(utils.AbstractJSONItem):
             logger.warning(
                 f'{self.registration.role}: {self.symbol} | '
                 f'No market at {self.location.waypoint} '
-                f'Cannot purchase {max_units:,} of {goods}.'
+                f'Cannot purchase {max_units:,} of {trade_symbol}.'
             )
             return transactions
         trade_volume = None
         for t_good in market_data.trade_goods:
-            if t_good.symbol == goods:
-                if t_good.type == 'EXPORT' or t_good.type == 'EXCHANGE':
-                    trade_volume = t_good.trade_volume
-                    break
+            if t_good.symbol == trade_symbol:
+                trade_volume = t_good.trade_volume
+                break
         if trade_volume is None:
             logger.warning(
-                f'Market {self.location.waypoint} no longer trading {goods}'
+                f'Market {self.location.waypoint} no longer trading {trade_symbol}'
             )
             return transactions
         with self.agent.lock:
             while max_units > 0:
                 unit_price = None
                 for t_good in self.markets().trade_goods:
-                    if t_good.symbol == goods:
-                        if t_good.type == 'EXPORT' or t_good.type == 'EXCHANGE':  # noqa: E501
-                            unit_price = t_good.purchase_price
-                            break
+                    if t_good.symbol == trade_symbol:
+                        unit_price = t_good.purchase_price
+                        break
                 if unit_price is None:
                     logger.warning(
                         f'Market {self.location.waypoint} no longer '
-                        f'trading {goods}'
+                        f'trading {trade_symbol}'
                     )
                     return transactions
                 buy_units = max_units
@@ -1005,22 +1011,22 @@ class Ship(utils.AbstractJSONItem):
                     if buy_units == 0:
                         return transactions
                     purchase_amount = buy_units * unit_price
-                transactions.append(self.purchase(goods, buy_units))
+                transactions.append(self.purchase(trade_symbol, buy_units))
                 max_units -= buy_units
         return transactions
 
     @retry()
     @transit
     @docked
-    def purchase(self, goods, units):
+    def purchase(self, trade_symbol, units):
         """
-        Purchases the specified units of the good.
+        Purchases the specified units of the trade_symbol
 
         Examples of exceptions are insufficient funds, cargo capacity,
         or if at an invalid waypoint
 
         Args:
-            goods: Good type. Symbol of item to purchase
+            trade_symbol: Symbol of item to purchase
             units: Number of units to purchase
 
         Blocks:
@@ -1029,14 +1035,14 @@ class Ship(utils.AbstractJSONItem):
         Returns:
             Transacaction
         """
-        goods = goods.upper()
-        if goods not in utils.GOODS_TYPES:
+        trade_symbol = trade_symbol.upper()
+        if trade_symbol not in utils.GOODS_TYPES:
             raise exceptions.SpaceAttributeError(
-                f'{goods} is not an acceptable goods type. '
+                f'{trade_symbol} is not an acceptable goods type. '
                 'See snisp.utils.GOODS_TYPES for acceptable goods.'
             )
         with self.agent.lock:
-            payload = {'symbol': goods, 'units': int(units)}
+            payload = {'symbol': trade_symbol, 'units': int(units)}
             response = self.agent.client.post(
                 f'/my/ships/{self.symbol}/purchase', json=payload
             )
@@ -1213,12 +1219,12 @@ class Ship(utils.AbstractJSONItem):
             yield Ship(self.agent, ship)
 
     @transit
-    def sell_all(self, goods, units=0):
+    def sell_all(self, trade_symbol, units=0):
         """
         Sell goods from the Ship's cargo.
 
         Args:
-            goods: Good type. Symbol of item to sell
+            trade_symbol: Good type. Symbol of item to sell
 
         Kwargs:
             units: The number of units to sell. If units < 0, all will be sold
@@ -1235,13 +1241,13 @@ class Ship(utils.AbstractJSONItem):
         if units <= 0:
             units = next(
                 (
-                    i.units for i in self.cargo.inventory if i.symbol == goods
+                    i.units for i in self.cargo.inventory if i.symbol == trade_symbol
                 ), None
             )
             if units is None:
                 logger.warning(
                     f'{self.registration.role}: {self.symbol} | '
-                    'Attempting to sell {goods} which '
+                    'Attempting to sell {trade_symbol} which '
                     'is not currently in its cargo hold'
                 )
                 return transactions
@@ -1250,20 +1256,19 @@ class Ship(utils.AbstractJSONItem):
             logger.warning(
                 f'{self.registration.role}: {self.symbol} | '
                 f'No market at {self.location.waypoint}. '
-                f'Cannot sell {units:,} of {goods}.'
+                f'Cannot sell {units:,} of {trade_symbol}.'
             )
             return transactions
         trade_volume = next(
             (
                 i.trade_volume
                 for i in market_data.trade_goods
-                if i.type == 'IMPORT'
-                if i.symbol == goods
+                if i.symbol == trade_symbol
             ), None
         )
         if trade_volume is None:
             logger.warning(
-                f'Market {market_data.symbol} no longer trading {goods}'
+                f'Market {market_data.symbol} no longer trading {trade_symbol}'
             )
             return transactions
         while units:
@@ -1273,7 +1278,7 @@ class Ship(utils.AbstractJSONItem):
                 sell_units = trade_volume
             else:
                 units = 0
-            transactions.append(self.sell(goods, sell_units))
+            transactions.append(self.sell(trade_symbol, sell_units))
         self.agent.recent_transactions.extendleft(transactions)
         return transactions
 
@@ -1316,12 +1321,12 @@ class Ship(utils.AbstractJSONItem):
     @retry()
     @transit
     @docked
-    def sell(self, goods, units):
+    def sell(self, trade_symbol, units):
         """
         Sell goods from the Ship's cargo.
 
         Args:
-            goods: Good type. Symbol of item to sell
+            trade_symbol: Good type. Symbol of item to sell
             units: The number of units to sell
 
         Blocks:
@@ -1330,13 +1335,13 @@ class Ship(utils.AbstractJSONItem):
         Returns:
             Transaction
         """
-        goods = goods.upper()
-        if goods not in utils.GOODS_TYPES:
+        trade_symbol = trade_symbol.upper()
+        if trade_symbol not in utils.GOODS_TYPES:
             raise exceptions.SpaceAttributeError(
-                f'{goods} is not an acceptable goods type. '
+                f'{trade_symbol} is not an acceptable goods type. '
                 'See snisp.utils.GOODS_TYPES for acceptable goods.'
             )
-        payload = {'symbol': goods, 'units': int(units)}
+        payload = {'symbol': trade_symbol, 'units': int(units)}
         with self.agent.lock:
             response = self.agent.client.post(
                 f'/my/ships/{self.symbol}/sell', json=payload
@@ -1402,8 +1407,9 @@ class Ship(utils.AbstractJSONItem):
         Kwargs:
             symbol: The symbol for the goods to transfer
             units: The number of units to transfer
+
         Blocks:
-            True: until both Ships reach common Waypoint
+            True: until both Ships reach destination
         """
         symbol = symbol.upper()
         if symbol not in utils.GOODS_TYPES:
