@@ -1,0 +1,1 @@
+The following files are intended to be used as instructional recipes on how to use the basics of the Library. The recipes may not be the most efficient means to reaching an end but will be demonstrative of how to accomplish the task.
