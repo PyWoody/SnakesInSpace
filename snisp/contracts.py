@@ -130,6 +130,9 @@ class Contract(utils.AbstractJSONItem):
                        either the number of remaining units to be delivered
                        or the number of units in the Ship's cargo, whatever
                        is fewer
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
         """
         trade_symbol = trade_symbol.strip().upper()
         cargo_units = next(

@@ -63,7 +63,7 @@ class Markets:
         Waypoint --> Market.
 
         If no kwarg is passed, the current Market data will be returned, which
-        is equivalent to Market.data
+        is equivalent to MarketData
 
         Kwargs:
             waypoint: A Waypoint or Waypoint sublcass
@@ -334,7 +334,7 @@ class Markets:
             exchanges: Find a Market that exchanges trade symbol
 
         Yields:
-            Market, Market.data
+            Market, MarketData
         """
         if imports is not None:
             imports = imports.upper().strip()
@@ -520,7 +520,17 @@ class Market(utils.AbstractJSONItem):
 
 class MarketData(utils.AbstractJSONItem):
 
-    """Convenience class. Equivalent to Market"""
+    """
+    Convenience class. Equivalent to Market but useful for comparing Market
+    to Market.data as Market will not have the supplemental data that
+    MarketData contains
+
+    >>> ship = next(iter(agent.fleet))
+    >>> market = next(iter(ship.markets))
+    >>> market.trade_goods  # Does not exist. Returns None
+    >>> market.data.trade_goods
+    []
+    """
 
     def __init__(self, agent, data):
         self.agent = agent
@@ -649,7 +659,7 @@ def market_delta_sort_key(market_record):
 def import_sort_key(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
@@ -665,7 +675,7 @@ def import_sort_key(market_data, trade_symbol):
 def export_sort_key(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
@@ -681,7 +691,7 @@ def export_sort_key(market_data, trade_symbol):
 def exchange_sort_key(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
@@ -697,7 +707,7 @@ def exchange_sort_key(market_data, trade_symbol):
 def export_or_exchange_sort_key(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
@@ -714,7 +724,7 @@ def export_or_exchange_sort_key(market_data, trade_symbol):
 def has_import(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
@@ -726,7 +736,7 @@ def has_import(market_data, trade_symbol):
 def has_export(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
@@ -738,7 +748,7 @@ def has_export(market_data, trade_symbol):
 def has_exchange(market_data, trade_symbol):
     """
     Args:
-        market_data: The Market's market.data
+        market_data: The Market's MarketData
         trade_symbol: Symbol of the good to check
 
     Returns:
