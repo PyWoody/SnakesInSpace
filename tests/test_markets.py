@@ -79,6 +79,9 @@ class TestMarkets:
         ship = self.agent.fleet('TEST_SHIP_SYMBOL')
         market = ship.markets()
 
+        assert market == market.data
+        assert market == market.data.data
+
         assert len(market) == len(market.to_dict())
         assert 'to_dict' in dir(market)
         assert market == ship.markets()

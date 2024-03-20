@@ -6,9 +6,9 @@ import traceback
 
 from collections.abc import Iterable
 
-try:
+try:  # pragma: no cover
     from rich.highlighter import Highlighter
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     class Highlighter:
         pass
 
@@ -189,7 +189,7 @@ class BaseJSONItem(AbstractJSONItem):
         self._data = data
 
 
-class DummyHighlighter:
+class DummyHighlighter:  # pragma: no cover
 
     regexes = []
 
@@ -197,7 +197,7 @@ class DummyHighlighter:
         return text
 
 
-class RichHighlighter(Highlighter):
+class RichHighlighter(Highlighter):  # pragma: no cover
 
     regexes = []
 

@@ -389,6 +389,19 @@ class TestWaypoint:
         assert waypoint.data.to_dict() == waypoint_data['data']
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
+    def test_location(self, respx_mock):
+        waypoint_data = json.load(
+            open(os.path.join(DATA_DIR, 'waypoint.json'), encoding='utf8')
+        )
+        waypoint_data['data']['waypointSymbol'] = waypoint_data['data']['symbol']  # noqa: E501
+
+        waypoint = snisp.waypoints.Waypoint(self.agent, waypoint_data['data'])
+
+        assert waypoint.location.sector == waypoint_data['data']['systemSymbol'].split('-')[0]  # noqa: E501
+        assert waypoint.location.system == waypoint_data['data']['systemSymbol']
+        assert waypoint.location.waypoint == waypoint_data['data']['symbol']
+
+    @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_supply_construction_data(self, respx_mock):
         ship_data = json.load(
             open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')

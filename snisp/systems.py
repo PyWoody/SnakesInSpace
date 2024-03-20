@@ -148,4 +148,7 @@ class Location(utils.AbstractJSONItem):
     def waypoint(self):
         if hq := self.headquarters:
             return hq
-        return self.nav.waypoint_symbol
+        if nav := self.nav:
+            if wp := nav.waypoint_symbol:
+                return wp
+        return self.symbol

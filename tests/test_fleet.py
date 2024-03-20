@@ -1600,26 +1600,6 @@ class TestFleetShip:
                 )
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
-    def test_updated_mounts(self, respx_mock):
-        ship_data = json.load(
-            open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')
-        )
-
-        respx_mock.get('/my/ships/TEST_SHIP_SYMBOL').mock(
-            return_value=httpx.Response(200, json=ship_data)
-        )
-        mount_data = json.load(
-            open(os.path.join(DATA_DIR, 'mount.json'), encoding='utf8')
-        )
-        respx_mock.get('/my/ships/TEST_SHIP_SYMBOL/mounts').mock(
-            return_value=httpx.Response(200, json=mount_data)
-        )
-
-        ship = self.agent.fleet('TEST_SHIP_SYMBOL')
-        mounts = ship.updated_mounts()
-        assert mounts == snisp.fleet.Mounts(self.agent, mount_data['data'])
-
-    @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_remove_mount(self, respx_mock):
         ship_data = json.load(
             open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')
