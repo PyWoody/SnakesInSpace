@@ -16,6 +16,12 @@ class Systems:
         return f'{self.__class__.__name__}({self.agent!r})'
 
     def __iter__(self):
+        """
+        Iterates over the System's in the Agent's current universe
+
+        Yields:
+            StarSystem
+        """
         page = 1
         response = self.get_page(page=page)
         while data := response.json()['data']:

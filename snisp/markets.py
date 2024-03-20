@@ -27,6 +27,8 @@ MarketDataRecord = namedtuple(
 
 class Markets:
 
+    """Markets in the Ship's current Location"""
+
     # TODO: using __call__ for the actual market data is kind of confusing
     #       when used by a ship, e.g., ship.markets()
     #       Need to think of a better scheme/name
@@ -41,6 +43,13 @@ class Markets:
         return f'{cls}({self.agent!r}, {self.location!r})'
 
     def __iter__(self):
+        """
+        Iterates over the Waypoint's in the Ship's current location
+        yielding Markets
+
+        Yields:
+            Market
+        """
         _waypoint = Waypoints(self.agent, self.location)
         for waypoint in _waypoint(traits='MARKETPLACE'):
             yield Market(self.agent, waypoint.to_dict())
@@ -49,6 +58,20 @@ class Markets:
     def __call__(
         self, *, waypoint=None, waypoint_symbol=None
     ):
+        """
+        Retrieves a Market. Can be useful when going from
+        Waypoint --> Market.
+
+        If no kwarg is passed, the current Market data will be returned, which
+        is equivalent to Market.data
+
+        Kwargs:
+            waypoint: A Waypoint or Waypoint sublcass
+            waypoint_symbol: The string of a Waypoint that is a Market
+
+        Returns:
+            MarketData
+        """
         if waypoint is not None:
             system_symbol = waypoint.system_symbol
             waypoint_symbol = waypoint.symbol
@@ -79,6 +102,20 @@ class Markets:
         return MarketData(self.agent, data)
 
     def cheapest(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        with the cheapest Purchase Price for the trade symbol
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that offers the trade
+        symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         trade_symbol = trade_symbol.upper().strip()
         best_market = None
         best_price = None
@@ -95,6 +132,20 @@ class Markets:
         return best_market
 
     def cheapest_import(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        importing the trade symbol with the cheapest Sell Price
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that imports the trade
+        symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         if imports := list(self.search(imports=trade_symbol)):
             try:
                 imports = sorted(
@@ -110,6 +161,20 @@ class Markets:
                 return min(imports, key=lambda x: self.ship.distance(x[0]))
 
     def most_expensive_import(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        importing the trade symbol with the highest Sell Price
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that imports the trade
+        symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         if imports := list(self.search(imports=trade_symbol)):
             try:
                 imports = sorted(
@@ -127,6 +192,20 @@ class Markets:
                 return min(imports, key=lambda x: self.ship.distance(x[0]))
 
     def cheapest_export(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        exporting the trade symbol with the cheapest Purchase Price
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that exports the trade
+        symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         if exports := list(self.search(exports=trade_symbol)):
             try:
                 exports = sorted(
@@ -142,6 +221,20 @@ class Markets:
                 return min(exports, key=lambda x: self.ship.distance(x[0]))
 
     def cheapest_exchange(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        exchanging the trade symbol with the cheapest Purchase Price
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that exchanges the trade
+        symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         if exchanges := list(self.search(exchanges=trade_symbol)):
             try:
                 exchanges = sorted(
@@ -158,6 +251,21 @@ class Markets:
                 return min(exchanges, key=lambda x: self.ship.distance(x[0]))
 
     def cheapest_export_or_exchange(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        exporting or exchanging the trade symbol with the
+        cheapest Purchase Price
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that exports or exchanges
+        the trade symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         markets = []
         for market in self:
             market_data = self(waypoint=market)
@@ -185,6 +293,20 @@ class Markets:
                 return min(markets, key=lambda x: self.ship.distance(x[0]))
 
     def most_expensive_export(self, trade_symbol):
+        """
+        Searches Markets in the Ship's system to return the Market
+        exporting the trade symbol with the most expensive Purchase Price
+
+        A Ship or Probe must be at the Market to get the current
+        Sell Price. Otherwise, the closest Market that exports the trade
+        symbol will be returned
+        
+        Args:
+            trade_symbol: The symbol of the good to search
+
+        Returns:
+            Market
+        """
         if exports := list(self.search(exports=trade_symbol)):
             try:
                 exports = sorted(
@@ -202,6 +324,18 @@ class Markets:
                 return min(exports, key=lambda x: self.ship.distance(x[0]))
 
     def search(self, imports=None, exports=None, exchanges=None):
+        """
+        Searches for Markets in the current System. Multiple arguments
+        will be ANDs
+
+        Kwargs:
+            imports: Find a Market that imports trade symbol
+            exports: Find a Market that exports trade symbol
+            exchanges: Find a Market that exchanges trade symbol
+
+        Yields:
+            Market, Market.data
+        """
         if imports is not None:
             imports = imports.upper().strip()
         if exports is not None:
@@ -221,6 +355,17 @@ class Markets:
                         yield market, market_data
 
     def shipyard_market_data(self, ship_type):
+        """
+        Returns a tuple of the Shipyard, ShipyardShip of the cheapest
+        ShipyardShip of type ship type
+
+        Args:
+            ship_type: Ship type to search. See snisp.utils.SHIP_TYPES
+                       for all supported ship types
+
+        Returns:
+            Shipyard, ShipyardShip
+        """
         # Reminder: Available ships will yield nothing if no probes
         #           are at the waypoint
         output = (
@@ -233,6 +378,15 @@ class Markets:
             return None, None
 
     def sells(self, trade_symbol):
+        """
+        Finds Markets in the current System that sell the trade symbol
+
+        Args:
+            trade_symbol: The symbol of the good to find
+
+        Yields:
+            Market
+        """
         trade_symbol = trade_symbol.strip().upper()
         for market in self:
             market_data = market.data
@@ -244,6 +398,15 @@ class Markets:
                 yield market
 
     def imports(self, trade_symbol):
+        """
+        Finds Markets in the current System that import the trade symbol
+
+        Args:
+            trade_symbol: The symbol of the good to find
+
+        Yields:
+            Market
+        """
         trade_symbol = trade_symbol.strip().upper()
         for market in self:
             if imports := market.data.imports:
@@ -252,6 +415,15 @@ class Markets:
                         yield market
 
     def exports(self, trade_symbol):
+        """
+        Finds Markets in the current System that export the trade symbol
+
+        Args:
+            trade_symbol: The symbol of the good to find
+
+        Yields:
+            Market
+        """
         trade_symbol = trade_symbol.strip().upper()
         for market in self:
             if exports := market.data.exports:
@@ -260,6 +432,15 @@ class Markets:
                         yield market
 
     def exchanges(self, trade_symbol):
+        """
+        Finds Markets in the current System that exchange the trade symbol
+
+        Args:
+            trade_symbol: The symbol of the good to find
+
+        Yields:
+            Market
+        """
         trade_symbol = trade_symbol.strip().upper()
         for market in self:
             if exchanges := market.data.exchange:
@@ -268,6 +449,15 @@ class Markets:
                         yield market
 
     def fuel_stations(self, *, system_symbol=None, traits=None):
+        """
+        Finds all Waypoints in the system that allow refueling
+
+        NOTE: Since this is an expensive and time consuming call that requires
+        a considerable amount of network calls, the results will be cached.
+
+        Returns:
+            Waypoints: List of Waypoints that accept refueling
+        """
         with self.agent.lock:
             if not self.agent.client.testing:
                 if fuel_stations := cache.get_fuel_stations(self.location):
@@ -300,6 +490,18 @@ class Market(utils.AbstractJSONItem):
 
     @property
     def data(self):
+        """
+        Returns the MarketData for the Market
+
+        Equivalent to calling markets() on an existing Market
+
+        If a Ship or Probe is located at the Market, the live MarketData
+        will be returned, including recent transactions, sell prices, and
+        purchase prices
+
+        Returns:
+            MarketData
+        """
         # REMINDER: This is the same data returned by Markets.__call__
         response = self.agent.client.get(
             f'/systems/{self.location.system}/waypoints/{self.symbol}/market'
@@ -312,10 +514,13 @@ class Market(utils.AbstractJSONItem):
 
     @property
     def location(self):
+        """Returns the Market's Location"""
         return Location(self.agent, {'headquarters': self.symbol})
 
 
 class MarketData(utils.AbstractJSONItem):
+
+    """Convenience class. Equivalent to Market"""
 
     def __init__(self, agent, data):
         self.agent = agent
@@ -323,6 +528,18 @@ class MarketData(utils.AbstractJSONItem):
 
     @property
     def data(self):
+        """
+        Returns the MarketData for the Market
+
+        Equivalent to calling markets() on an existing Market
+
+        If a Ship or Probe is located at the Market, the live MarketData
+        will be returned, including recent transactions, sell prices, and
+        purchase prices
+
+        Returns:
+            MarketData
+        """
         # REMINDER: This is the same data returned by Markets.__call__
         response = self.agent.client.get(
             f'/systems/{self.location.system}/waypoints/{self.symbol}/market'
@@ -335,10 +552,26 @@ class MarketData(utils.AbstractJSONItem):
 
     @property
     def location(self):
+        """Returns the Market's Location"""
         return Location(self.agent, {'headquarters': self.symbol})
 
 
 def best_market_pairs(ship, market_data, price_delta=0):
+    """
+    Returns a sorted list of the best market pairs
+
+
+    Args:
+        ship: A ship in the System to search
+        market_data: An iterable of MarketDatas to search
+
+    Kwargs:
+        price_delta: Minimum delta between the Purchase and Sell prices
+                     Default is 0
+
+    Returns:
+        MarketDataRecord: Sorted list of MarketDataRecords
+    """
     market_pairs = {}
     for market in market_data:
         for good in market.trade_goods:
@@ -398,15 +631,31 @@ def best_market_pairs(ship, market_data, price_delta=0):
     return sorted(output, key=market_delta_sort_key, reverse=True)
 
 
-def market_delta_sort_key(market):
-    for i_good in market.import_market.trade_goods:
-        if i_good.symbol == market.trade_symbol:
-            for e_good in market.export_market.trade_goods:
-                if e_good.symbol == market.trade_symbol:
+def market_delta_sort_key(market_record):
+    """
+    Returns the difference between the Sell Price and Purchase Price
+    for the trade goods associated with the market_record.trade_symbol
+
+    Args:
+        market_record: A MarketDataRecord
+    """
+    for i_good in market_record.import_market.trade_goods:
+        if i_good.symbol == market_record.trade_symbol:
+            for e_good in market_record.export_market.trade_goods:
+                if e_good.symbol == market_record.trade_symbol:
                     return i_good.sell_price - e_good.purchase_price
 
 
 def import_sort_key(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        purchase_price: Returns sell price of the trade good if it imports
+                        the trade_symbol
+    """
     if market_data.trade_goods:
         for good in market_data.trade_goods:
             if good.type == 'IMPORT' and good.symbol == trade_symbol:
@@ -414,6 +663,15 @@ def import_sort_key(market_data, trade_symbol):
 
 
 def export_sort_key(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        purchase_price: Returns purchase price of the trade good if it exports
+                        the trade_symbol
+    """
     if market_data.trade_goods:
         for good in market_data.trade_goods:
             if good.type == 'EXPORT' and good.symbol == trade_symbol:
@@ -421,6 +679,15 @@ def export_sort_key(market_data, trade_symbol):
 
 
 def exchange_sort_key(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        purchase_price: Returns purchase price of the trade good if it exchanges
+                        the trade_symbol
+    """
     if market_data.trade_goods:
         for good in market_data.trade_goods:
             if good.type == 'EXCHANGE' and good.symbol == trade_symbol:
@@ -428,6 +695,15 @@ def exchange_sort_key(market_data, trade_symbol):
 
 
 def export_or_exchange_sort_key(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        purchase_price: Returns purchase price of the trade good if it exports
+                        or exchanges the trade_symbol
+    """
     if market_data.trade_goods:
         for good in market_data.trade_goods:
             if good.symbol == trade_symbol:
@@ -436,12 +712,36 @@ def export_or_exchange_sort_key(market_data, trade_symbol):
 
 
 def has_import(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        bool: True if market imports trade symbol; else, False
+    """
     return trade_symbol in {i.symbol for i in market_data.imports}
 
 
 def has_export(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        bool: True if market exports trade symbol; else, False
+    """
     return trade_symbol in {i.symbol for i in market_data.exports}
 
 
 def has_exchange(market_data, trade_symbol):
+    """
+    Args:
+        market_data: The Market's market.data
+        trade_symbol: Symbol of the good to check
+
+    Returns:
+        bool: True if market exchanges trade symbol; else, False
+    """
     return trade_symbol in {i.symbol for i in market_data.exchange}

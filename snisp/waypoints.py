@@ -23,6 +23,12 @@ class Waypoints:
         return f'{cls}({self.agent!r}, {self.location!r})'
 
     def __iter__(self):
+        """
+        Iterates over the Waypoint's in the Ship's current location
+
+        Yields:
+            Waypoint or a subclass of Waypoint
+        """
         page = 1
         response = self.get_page(page=page)
         while data := response.json()['data']:

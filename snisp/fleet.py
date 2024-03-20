@@ -43,6 +43,12 @@ class Fleet:
         return Ship(self.agent, response.json()['data'])
 
     def __iter__(self):
+        """
+        Iterates over the current Agent's Fleet
+
+        Yields:
+            Ship
+        """
         page = 1
         response = self.get_page(page=page)
         while data := response.json()['data']:
@@ -552,7 +558,9 @@ class Ship(utils.AbstractJSONItem):
         Installs the listed Mount onto the ship. Must be at a shipyard
 
         Args:
-            mount_symbol: Symbol of the Mount to install
+            mount_symbol: Symbol of the Mount to install.
+                          See snisp.utils.SHIP_MOUNTS for all supported
+                          Ship Mounts
 
         Blocks:
             True: Won't be executed until Ship reaches destination
@@ -923,7 +931,7 @@ class Ship(utils.AbstractJSONItem):
         To remove the buffer, just pass a 0
 
         Args:
-            goods: Good type. Symbol of item to purchase
+            goods: Good type. Symbol of item to purchase.
 
         Kwargs:
             max_units: Up to max_units to purchase. Default is until the ship's
@@ -1111,7 +1119,8 @@ class Ship(utils.AbstractJSONItem):
         Converts 30 units of Ore into 1 inut of Product
 
         Args:
-            produce: The symbol to produce. i.e., "IRON"
+            produce: The symbol to produce. i.e., "IRON".
+                     See snisp.utils.REFINABLE_SYMBOLS for refinable types
 
         Blocks:
             True: Blocks during cooldown
@@ -1489,7 +1498,8 @@ class Ship(utils.AbstractJSONItem):
         Updates the Ships flight mode if needed
 
         Args:
-            mode: New flight_mode
+            mode: New flight_mode. See snips.utils.FLIGHT_MODES for supported
+                  flight modes
 
         Blocks:
             True: Won't be executed until Ship reaches destination

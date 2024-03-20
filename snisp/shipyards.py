@@ -19,6 +19,12 @@ class Shipyards:
         return f'{cls}({self.agent!r}, {self.location!r})'
 
     def __iter__(self):
+        """
+        Iterates over the Shipyard's in the Ship's current location
+
+        Yields:
+            Market
+        """
         waypoint = waypoints.Waypoints(self.agent, self.location)
         for shipyard in waypoint(traits='SHIPYARD'):
             yield Shipyard(self.agent, shipyard.to_dict())
