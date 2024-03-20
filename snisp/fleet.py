@@ -931,8 +931,6 @@ class Ship(utils.AbstractJSONItem):
         are available in the Ship's cargo; else, max_units will be up to the
         number supplied
 
-        If buffer > 0, the number of max_units will be computed as
-
         Buffer will be your credits buffer. The default 200_000 limit means you
         will be able to purchase up to max_units so long as your current
         agent.data.credits - buffer >= purchase price.
@@ -1154,7 +1152,7 @@ class Ship(utils.AbstractJSONItem):
         """Returns a new Ship class object of the current ship
 
         Returns:
-            A new Ship instead from self
+            A new Ship instance from self
         """
         response = self.agent.client.get(f'/my/ships/{self.symbol}')
         return Ship(self.agent, response.json()['data'])

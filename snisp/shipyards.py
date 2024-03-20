@@ -23,13 +23,41 @@ class Shipyards:
         Iterates over the Shipyard's in the Ship's current location
 
         Yields:
-            Market
+            Shipyard
         """
         waypoint = waypoints.Waypoints(self.agent, self.location)
         for shipyard in waypoint(traits='SHIPYARD'):
             yield Shipyard(self.agent, shipyard.to_dict())
 
     def autopurchase(self, *, ship_type, max_units=1, buffer=300_000):
+        """
+        Purchases up to max_units of ship_type, depending on
+        the Agent's current credits with regards to the buffer and if the
+        ship_type is currently available at a known Shipyard
+
+        Buffer will be your credits buffer. The default 300_000 limit means you
+        will be able to purchase up to max_units so long as your current
+        agent.data.credits - buffer >= purchase price.
+        To remove the buffer, just pass a 0
+
+        NOTE: The only way to know the type and cost of a ship available
+              for purchase at a Shipyard is to have a Ship or Probe located
+              at the Shipyard. Just because nothing is returned, does not
+              entail that no Ship's of that type are availble for purchase
+
+        Args:
+            ship_type: Ship type to purchase. See snisp.utils.SHIP_TYPES for
+                       acceptable Ship types
+
+        Kwargs:
+            max_units: Up to max_units to purchase. Default is 1
+            buffer: Credit buffer. Up to max_units will be purchased so far as
+                    the purchase amount - agent.data.credits - buffer > 0.
+                    Default is 300_000
+
+        Returns:
+            Transactions:  List of successful Transactions or empty list
+        """
         max_units = int(max_units)
         transactions = []
         smd = self.ship.markets.shipyard_market_data
@@ -70,6 +98,21 @@ class Shipyard(utils.AbstractJSONItem):
 
     @retry()
     def available_ships(self, ship_type=None):
+        """
+        Yields the ships available for purchasing at the Shipyard
+
+        NOTE: The only way to know the type and cost of a ship available
+              for purchase at a Shipyard is to have a Ship or Probe located
+              at the Shipyard. Just because nothing is returned, does not
+              entail that no Ship's of that type are availble for purchase
+              at the Shipyard
+
+        Kwargs:
+            ship_type: Ship type to filter. See snisp.utils.SHIP_TYPES for
+                       acceptable Ship types. Default is None
+        Yields:
+            ShipyardShip
+        """
         if ship_type and ship_type not in utils.SHIP_TYPES:
             raise exceptions.SpaceAttributeError(
                 f'{ship_type} is not an acceptable Ship type. '
@@ -88,6 +131,15 @@ class Shipyard(utils.AbstractJSONItem):
 
     @retry()
     def purchase(self, ship_type):
+        """
+        Purchases a Ship of ship_type
+
+        Args:
+            ship_type: Ship type to filter. See snisp.utils.SHIP_TYPES for
+                       acceptable Ship types
+        Returns:
+            Ship
+        """
         if ship_type not in utils.SHIP_TYPES:
             raise exceptions.SpaceAttributeError(
                 f'{ship_type} is not an acceptable Ship type. '
@@ -115,6 +167,14 @@ class Shipyard(utils.AbstractJSONItem):
             return fleet.Ship(self.agent, data['ship'])
 
     def transactions(self, page=1):
+        """
+        Yields the most recent Transactions at the Shipyard
+
+        Requires a Ship or Probe to be located at the Shipyard
+
+        Yields:
+            Transaction
+        """
         if not utils.a_ship_at_location(self.agent, self.symbol):
             cls = self.__class__.__name__
             raise exceptions.NoShipAtLocationError(
@@ -152,8 +212,25 @@ class ShipyardShip(utils.AbstractJSONItem):
 
     @retry()
     def purchase(self, *, buffer=200_000):
-        # Convenience method used when iterating over available ship types
-        # Should be renamed to make it clearer
+        """
+        Purchases a Ship of the ShipyardShip's ship_type
+
+        Convenience method used when iterating over available ship types
+        for sale
+
+        Buffer will be your credits buffer. The default 200_000 limit means you
+        will be able to purchase a Ship so long as your current
+        agent.data.credits - buffer >= purchase price.
+        To remove the buffer, just pass a 0
+
+        Kwargs:
+            buffer: Credit buffer. Up to max_units will be purchased so far as
+                    the purchase amount - agent.data.credits - buffer > 0.
+                    Default is 200_000
+
+        Returns:
+            Ship
+        """
         payload = {
             'shipType': self.type, 'waypointSymbol': self.shipyard_symbol
         }

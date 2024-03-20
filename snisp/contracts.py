@@ -203,7 +203,7 @@ class Contract(utils.AbstractJSONItem):
         """Returns a new Contract class object of the current Contract
 
         Returns:
-            A new Contract instead from self
+            A new Contract instance from self
         """
         response = self.agent.client.get(f'/my/contracts/{self.id}')
         return Contract(self.agent, response.json()['data'])
