@@ -16,6 +16,12 @@ class Systems:
         return f'{self.__class__.__name__}({self.agent!r})'
 
     def __iter__(self):
+        """
+        Iterates over the System's in the Agent's current universe
+
+        Yields:
+            StarSystem
+        """
         page = 1
         response = self.get_page(page=page)
         while data := response.json()['data']:
@@ -25,12 +31,30 @@ class Systems:
             response = self.get_page(page=page)
 
     def find(self, **filters):
+        """
+        Find the first instance of the StarSystems which match the filters
+
+        Kwargs:
+            **filters: Top-level key, value pairs used to filter the Systems
+
+        Returns:
+            StarSystem
+        """
         try:
             return next(self.find_all(**filters))
         except StopIteration:
             logger.info(f'No system found with {filters!r}')
 
     def find_all(self, **filters):
+        """
+        Find the all instances of the StarSystems which match the filters
+
+        Kwargs:
+            **filters: Top-level key, value pairs used to filter the Systems
+
+        Yields:
+            StarSystem
+        """
         if _type := filters.get('type'):
             _type = _type.upper().strip()
             if _type not in utils.SYSTEMS_TYPES:
@@ -68,7 +92,19 @@ class System:
     @in_orbit
     @cooldown
     def scan(self, ship):
-        """Scan will be monkey patched in the Fleet class"""
+        """
+        Scans the System in the ship's current System
+
+        Args:
+            ship: Ship to use. All snisp.fleet.Ship objects will have this
+                  automatically monkey-patched in.
+        Blocks:
+            True: Won't be executed until Ship reaches destination and/or
+                  the cooldown period has passed
+
+        Yields:
+            StarSystem
+        """
         response = self.agent.client.post(
             f'/my/ships/{ship.symbol}/scan/systems'
         )
@@ -86,6 +122,11 @@ class StarSystem(utils.AbstractJSONItem):
 
 
 class Location(utils.AbstractJSONItem):
+
+    """
+    Location is used throughout as a convenience class for normalizing
+    sector, system, and waypoint symbols
+    """
 
     def __init__(self, agent, location):
         self.agent = agent

@@ -3,7 +3,7 @@ import logging
 
 from collections import Counter
 
-from snisp import exceptions, utils
+from snisp import exceptions, utils, systems
 from snisp.decorators import cooldown, docked, in_orbit, retry, transit
 from snisp.exceptions import ClientError
 from snisp.shipyards import Shipyard
@@ -23,6 +23,12 @@ class Waypoints:
         return f'{cls}({self.agent!r}, {self.location!r})'
 
     def __iter__(self):
+        """
+        Iterates over all of the Waypoint's in the Ship's current location
+
+        Yields:
+            Waypoint or a subclass of Waypoint
+        """
         page = 1
         response = self.get_page(page=page)
         while data := response.json()['data']:
@@ -41,6 +47,30 @@ class Waypoints:
         filters=None,
         page=1,
     ):
+        """
+        Iterates over Waypoints while yield only the ones that match the
+        filters
+
+        Kwargs:
+            system_symbol: Symbol of the System to search. If not specified,
+                           the System in the current self.location will be used
+                           Default is None.
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+            types: Single type to filter on. See snisp.utils.WAYPOINT_TYPES
+                   for all types
+                   Default is None
+            filters: A dictionary of top-level items to filter the Waypoints.
+                     The key, value pairs in the Waypoint's waypoint.to_dict()
+                     data is compared against the filters
+                     e.g., a filter of {'orbitals': []} would return only
+                     Waypoints that don't have any orbitals
+                     Default is None
+
+        Yields:
+            Waypoint or a subclass of Waypoint
+        """
         filters = dict(filters) if filters is not None else {}
         filters = {utils.camel_case(k): v for k, v in filters.items()}
         response = self.get_page(
@@ -92,6 +122,28 @@ class Waypoints:
 
     @retry()
     def get(self, *, waypoint=None, system_symbol=None, waypoint_symbol=None):
+        """
+        Gets a Waypoint or Waypoint subclass.
+
+        Convenient for converting a Market back to a Waypoint
+        or Waypoint subclass
+
+        >>> ship = next(iter(agent.fleet))
+        >>> market = next(iter(ship.markets))
+        >>> type(market)
+        <class 'snisp.markets.Market'>
+        >>> waypoint = ship.waypoints.get(waypoint=market)
+        >>> type(waypoint)
+        <class 'snisp.waypoints.EngineeredAsteroid'>
+
+        Kwargs:
+            waypoint: Waypoint or Waypoint subclass. Default is None
+            system_symbol: Symbol of a System to use. Default is None
+            waypoint_symbol: Symbol of a Waypoint to use. Default is None
+
+        Returns:
+            Waypoint or Waypoint subclass
+        """
         if waypoint is not None:
             system_symbol = waypoint.system_symbol
             waypoint_symbol = waypoint.symbol
@@ -109,6 +161,12 @@ class Waypoints:
 
     @retry()
     def refresh(self, waypoint):
+        """Returns a new Waypoint class or subclass object of the
+        current Waypoint
+
+        Returns:
+            A new Waypoint or Waypoint subclass instance from self
+        """
         response = self.agent.client.get(
             f'/systems/{waypoint.system_symbol}/waypoints/{waypoint.symbol}'
         )
@@ -122,6 +180,28 @@ class Waypoints:
     def search(
         self, *, traits=None, types=None, system_symbol=None, filters=None,
     ):
+        """Convenience method. Equivalent to __call__
+
+        Kwargs:
+            system_symbol: Symbol of the System to search. If not specified,
+                           the System in the current self.location will be used
+                           Default is None.
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+            types: Single type to filter on. See snisp.utils.WAYPOINT_TYPES
+                   for all types
+                   Default is None
+            filters: A dictionary of top-level items to filter the Waypoints.
+                     The key, value pairs in the Waypoint's waypoint.to_dict()
+                     data is compared against the filters
+                     e.g., a filter of {'orbitals': []} would return only
+                     Waypoints that don't have any orbitals
+                     Default is None
+
+        Yields:
+            Waypoint or Waypoint subclass
+        """
         yield from self(
             system_symbol=system_symbol,
             traits=traits,
@@ -132,6 +212,18 @@ class Waypoints:
     @retry()
     @transit
     def chart(self, ship):
+        """
+        Charts the Waypoint at the ship's current location
+
+        Args:
+            ship: Ship to use. All snisp.fleet.Ship objects will have this
+                  automatically monkey-patched in.
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Chart
+        """
         try:
             response = self.agent.client.post(
                 f'/my/ships/{ship.symbol}/chart'
@@ -155,7 +247,19 @@ class Waypoints:
     @cooldown
     @in_orbit
     def scan(self, ship):
-        """Scan will be monkey patched in the Fleet class"""
+        """
+        Scans the Waypoints in the ship's current System
+
+        Args:
+            ship: Ship to use. All snisp.fleet.Ship objects will have this
+                  automatically monkey-patched in.
+        Blocks:
+            True: Won't be executed until Ship reaches destination and/or
+                  the cooldown period has passed
+
+        Yields:
+            Waypoint or Waypoint subclasses
+        """
         response = self.agent.client.post(
             f'/my/ships/{ship.symbol}/scan/waypoints'
         )
@@ -184,7 +288,19 @@ class Waypoints:
     @cooldown
     @in_orbit
     def survey(self, ship):
-        """Survey will be monkey patched in the Fleet class"""
+        """
+        Surveys the Waypoint at the ship's current location
+
+        Args:
+            ship: Ship to use. All snisp.fleet.Ship objects will have this
+                  automatically monkey-patched in.
+        Blocks:
+            True: Won't be executed until Ship reaches destination and/or
+                  the cooldown period has passed
+
+        Returns:
+            Survey
+        """
         if ship.nav.route.destination.type not in utils.SURVEYABLE_WAYPOINTS:
             raise exceptions.ShipSurveyWaypointTypeError(
                 f'{ship.nav.route.destination.type} is not an '
@@ -200,60 +316,174 @@ class Waypoints:
         )
         return Survey(self.agent, data)
 
-    def construction_sites(self, *, system_symbol=None, types=None):
+    def construction_sites(self, *, system_symbol=None):
+        """
+        Convenience method for finding ConstructionSites
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+
+        Yields:
+            ConstructionSite
+        """
         for construction_site in self(
             system_symbol=system_symbol
         ):
             if construction_site.is_under_construction:
                 yield ConstructionSite(self.agent, construction_site.to_dict())
 
-    def shipyards(self, *, system_symbol=None, types=None):
+    def shipyards(self, *, system_symbol=None):
+        """
+        Convenience method for finding Shipyards
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+
+        Yields:
+            Shipyard
+        """
         for shipyard in self(system_symbol=system_symbol, traits='SHIPYARD'):
             yield Shipyard(self.agent, shipyard.to_dict())
 
     def planets(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Planets
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            Planet
+        """
         for planet in self(
             system_symbol=system_symbol, types='PLANET', traits=traits
         ):
             yield Planet(self.agent, planet.to_dict())
 
     def gas_giants(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Gas Giants
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            GasGiant
+        """
         for gas_giant in self(
             system_symbol=system_symbol, types='GAS_GIANT', traits=traits
         ):
             yield GasGiant(self.agent, gas_giant.to_dict())
 
     def moons(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Moons
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            Moon
+        """
         for moon in self(
             system_symbol=system_symbol, types='MOON', traits=traits
         ):
             yield Moon(self.agent, moon.to_dict())
 
     def orbital_stations(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Orbital Stations
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            OrbitalStation
+        """
         for orbital_station in self(
             system_symbol=system_symbol, types='ORBITAL_STATION', traits=traits
         ):
             yield OrbitalStation(self.agent, orbital_station.to_dict())
 
     def jump_gates(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Jump Gates
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            JumpGate
+        """
         for jump_gate in self(
             system_symbol=system_symbol, types='JUMP_GATE', traits=traits
         ):
             yield JumpGate(self.agent, jump_gate.to_dict())
 
     def asteroid_fields(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Asteroid Fields
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            AsteroidField
+        """
         for asteroid_field in self(
             system_symbol=system_symbol, types='ASTEROID_FIELD', traits=traits
         ):
             yield AsteroidField(self.agent, asteroid_field.to_dict())
 
     def asteroids(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Asteroids
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            Asteroid
+        """
         for asteroid in self(
             system_symbol=system_symbol, types='ASTEROID', traits=traits
         ):
             yield Asteroid(self.agent, asteroid.to_dict())
 
     def engineered_asteroids(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Engineered Asteroids
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            EngineeredAsteroid
+        """
         for engineered_asteroid in self(
             system_symbol=system_symbol,
             types='ENGINEERED_ASTEROID',
@@ -262,30 +492,90 @@ class Waypoints:
             yield EngineeredAsteroid(self.agent, engineered_asteroid.to_dict())
 
     def asteroid_bases(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Asteroid Bases
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            AsteroidBase
+        """
         for asteroid_base in self(
             system_symbol=system_symbol, types='ASTEROID_BASE', traits=traits
         ):
             yield AsteroidBase(self.agent, asteroid_base.to_dict())
 
     def nebulas(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Nebulas
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            Nebula
+        """
         for nebula in self(
             system_symbol=system_symbol, types='NEBULA', traits=traits
         ):
             yield Nebula(self.agent, nebula.to_dict())
 
     def debris_fields(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Debris Fields
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            DebrisField
+        """
         for debris_field in self(
             system_symbol=system_symbol, types='DEBRIS_FIELD', traits=traits
         ):
             yield DebrisField(self.agent, debris_field.to_dict())
 
     def gravity_wells(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Gravity Wells
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            GravityWell
+        """
         for gravity_well in self(
             system_symbol=system_symbol, types='GRAVITY_WELL', traits=traits
         ):
             yield GravityWell(self.agent, gravity_well.to_dict())
 
     def artificial_gravity_wells(self, *, system_symbol=None, traits=None):
+        """
+        Convenience method for finding Artificial Gravity Wells
+
+        Kwargs:
+            system_symbol: System to search. Default is None for current System
+            traits: Single trait to filter on. See snisp.utils.WAYPOINT_TRAITS
+                    for all traits
+                    Default is None
+
+        Yields:
+            ArtificialGravityWell
+        """
         for artificial_gravity_well in self(
             system_symbol=system_symbol,
             types='ARTIFICIAL_GRAVITY_WELL',
@@ -308,6 +598,15 @@ class Waypoint(utils.AbstractJSONItem):
             f'/systems/{self.system_symbol}/waypoints/{self.waypoint_symbol}'
         )
         return WaypointData(self.agent, response.json()['data'])
+
+    @property
+    def location(self):
+        """Property for the Waypoints Location
+
+        Returns:
+            snisp.system.Location: Waypoints Location
+        """
+        return systems.Location(self.agent, self.to_dict())
 
 
 class WaypointData(utils.AbstractJSONItem):
@@ -390,6 +689,18 @@ class ConstructionSite(utils.AbstractJSONItem):
         trade_symbol,
         units,
     ):
+        """
+        Supply construction materials to a Waypoint under construction
+
+        Kwargs:
+            ship: Ship that contains the construciton materials
+                  and is at the Waypoint
+            trade_symbol: Symbol of the good to supply
+            units: Number of units of the good to supply
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+        """
         units = int(units)
         payload = {
             'shipSymbol': ship.symbol,

@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 class Agent:
 
+    """Agent represents your Player in SpaceTraders"""
+
     def __init__(self, *, symbol='', faction='', email='', token=''):
         database.setup()
         self.lock = threading.RLock()
@@ -52,10 +54,16 @@ class Agent:
 
     @property
     def client(self):
+        """Property that returns the modified HTTPX Client"""
         return self.__client
 
     @property
     def data(self):
+        """Your Agent's current data
+
+        Returns:
+            PlayerData
+        """
         response = self.client.get('/my/agent')
         return PlayerData(self, response.json()['data'])
 
@@ -84,12 +92,15 @@ class Agent:
 
 class PlayerData(utils.AbstractJSONItem):
 
+    """Your Agent's current data"""
+
     def __init__(self, agent, ship_data):
         self.agent = agent
         self._data = ship_data
 
 
 def reset():  # pragma: no cover
+    """Removes the user_config.json file if it exists"""
     config_file = os.path.abspath(
         os.path.join(os.path.dirname(__file__), 'data', 'user_config.json')
     )
