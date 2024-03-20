@@ -41,9 +41,15 @@ def run(agent):
     # Empty set for tracking probed Markets
     markets_with_probes = {}
 
+    # Set of Probes that are at their Market
+    probes_at_markets = {}
+
     while True:
         next_arrival = 60 * 15  # Fifteen minute baseline
         for probe in agent.fleet.probes():
+            if probe.symbol in probes_at_markets:
+                # Already at a Market
+                continue
             if probe.nav.status == 'IN_TRANSIT':
                 # Probe may already be in transit to a Market from
                 # a previous iteration or function
@@ -59,6 +65,8 @@ def run(agent):
                 # which means it's safe to stay and should notify other Probes
                 if probe.nav.waypoint_symbol not in markets_with_probes:
                     markets_with_probes.add(probe.nav.waypoint_symbol)
+                    # Mark the Probe as at a Market
+                    probes_at_markets.add(probe.symbol)
                     continue
 
             # At this point we know the Probe is not IN_TRANSIT and is not
@@ -82,6 +90,9 @@ def run(agent):
 
             # Mark the Market as Probed
             markets_with_probes.add(next_market.symbol)
+
+            # Mark the Probe as at a Market
+            probes_at_markets.add(probe.symbol)
 
             # Remove the Market from the list
             _ = markets.remove(next_market)
