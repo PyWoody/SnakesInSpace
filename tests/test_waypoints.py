@@ -528,14 +528,10 @@ class TestWaypoint:
             self.agent, construction_data['data']
         )
 
-        assert construction_site.data.to_dict() == construction_site.to_dict()  # noqa: E501
-        assert construction_site.data.to_dict() == construction_data['data']
-
-        construction_site_data = snisp.waypoints.ConstructionSiteData(
-            self.agent, construction_data['data']
-        )
-        assert construction_site_data.refresh().to_dict() == construction_site_data.to_dict()  # noqa: E501
-        assert construction_site_data.refresh().to_dict() == construction_data['data']  # noqa: E501
+        assert construction_site.to_dict() == construction_data['data']
+        assert construction_site.refresh().to_dict() == construction_site.to_dict()  # noqa: E501
+        assert construction_site.refresh().refresh().to_dict() == construction_site.to_dict()  # noqa: E501
+        assert construction_site.refresh().to_dict() == construction_data['data']  # noqa: E501
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_refresh(self, respx_mock):
@@ -627,6 +623,20 @@ class TestWaypoint:
         waypoints_side_effect = WaypointsSideEffect(waypoints_data)
         waypoints_route = respx_mock.get('/systems/TEST-SYSTEM/waypoints')
         waypoints_route.side_effect = waypoints_side_effect
+
+        construction_data = json.load(
+            open(
+                os.path.join(DATA_DIR, 'construction_site.json'),
+                encoding='utf8'
+            )
+        )
+        for waypoint in waypoints_data['data']:
+            respx_mock.get(
+                '/systems/TEST-SYSTEM/waypoints/'
+                f'{waypoint["symbol"]}/construction'
+            ).mock(
+                return_value=httpx.Response(200, json=construction_data)
+            )
 
         ship = self.agent.fleet('TEST_SHIP_SYMBOL')
 

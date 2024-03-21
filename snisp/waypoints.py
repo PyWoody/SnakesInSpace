@@ -326,11 +326,11 @@ class Waypoints:
         Yields:
             ConstructionSite
         """
-        for construction_site in self(
+        for waypoint in self(
             system_symbol=system_symbol
         ):
-            if construction_site.is_under_construction:
-                yield ConstructionSite(self.agent, construction_site.to_dict())
+            if waypoint.is_under_construction:
+                yield ConstructionSite.get(self.agent, waypoint)
 
     def shipyards(self, *, system_symbol=None):
         """
@@ -668,8 +668,40 @@ class ConstructionSite(utils.AbstractJSONItem):
         self.agent = agent
         self._data = waypoint
 
-    @property
-    def data(self):
+    @classmethod
+    @retry()
+    def get(cls, agent, waypoint):
+        """
+        Class method that creates a ConstructionSite instance from a Waypiont
+        Useful for when going from JumpGate Waypoint type to 
+        a ConstrutionSite type, for instance
+
+        Args:
+            cls: Automatically supplied by classmethod
+            agent: Your Agent
+            waypoint: The Waypoint to generate the ConstructionSite from
+
+        Returns:
+            ConstructionSite
+        """
+        response = agent.client.get(
+            f'/systems/{waypoint.system_symbol}/'
+            f'waypoints/{waypoint.symbol}/construction'
+        )
+        data = response.json()['data']
+        data['systemSymbol'] = waypoint.system_symbol
+        data['symbol'] = waypoint.symbol
+        return cls(agent, data)
+
+    @retry()
+    def refresh(self):
+        """
+        Returns a new ConstructionSite class object of the
+        current ConstructionSite and its current status
+
+        Returns:
+            A new ConstructionSite instance from self
+        """
         response = self.agent.client.get(
             f'/systems/{self.system_symbol}/waypoints/'
             f'{self.symbol}/construction'
@@ -677,7 +709,7 @@ class ConstructionSite(utils.AbstractJSONItem):
         data = response.json()['data']
         data['systemSymbol'] = self.system_symbol
         data['symbol'] = self.symbol
-        return ConstructionSiteData(self.agent, data)
+        return ConstructionSite(self.agent, data)
 
     @retry()
     @transit
@@ -722,23 +754,6 @@ class ConstructionSite(utils.AbstractJSONItem):
             f'{trade_symbol} to {self.symbol}'
         )
         return data
-
-
-class ConstructionSiteData(utils.AbstractJSONItem):
-
-    def __init__(self, agent, data):
-        self.agent = agent
-        self._data = data
-
-    def refresh(self):
-        response = self.agent.client.get(
-            f'/systems/{self.system_symbol}/waypoints/'
-            f'{self.symbol}/construction'
-        )
-        data = response.json()['data']
-        data['systemSymbol'] = self.system_symbol
-        data['symbol'] = self.symbol
-        return ConstructionSiteData(self.agent, data)
 
 
 # NOTE: These can be convient for isinstance checking

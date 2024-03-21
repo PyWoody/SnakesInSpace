@@ -1278,16 +1278,16 @@ The `ship` objects returned by `.available_ships` do have a convenience method o
 
 Select `Waypoints` will need construction materials delivered to them before they'll function correctly. Currently, all `JumpGate`s  in new Systems will need to be completed before you'll be able to use them to `jump` between Systems.
 
-You can see the required materials by calling `.data` on the `ConstructionSite`.
+The `ConstructionSite` will list the required materials in its `.materials`.
 
 ```python3
 >>> ship = next(iter(agent.fleet))
 >>> construction_sites = list(ship.waypoints.construction_sites())
->>> all(construction_site.is_under_construction for construction_site in construction_sites)
+>>> all(not construction_site.is_complete for construction_site in construction_sites)
 True
->>> construction_sites[0].data
-ConstructionSiteData({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 0}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
->>> jump_gate = ship.waypoints.get(waypoint_symbol=construction_site.symbol)
+>>> construction_sites[0]
+ConstructionSite({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 0}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
+>>> jump_gate = ship.waypoints.get(waypoint_symbol=construction_sites[0].symbol)
 >>> jump_gate
 JumpGate({'systemSymbol': 'X1-CC27', 'symbol': 'X1-CC27-I56', 'type': 'JUMP_GATE', 'x': -335, 'y': 298, 'orbitals': [], 'traits': [{'symbol': 'MARKETPLACE', 'name': 'Marketplace', 'description': 'A thriving center of commerce where traders from across the galaxy gather to buy, sell, and exchange goods.'}], 'modifiers': [], 'chart': {'submittedBy': 'COSMIC', 'submittedOn': '2024-03-10T02:51:05.063Z'}, 'faction': {'symbol': 'COSMIC'}, 'isUnderConstruction': True})
 >>> jump_gate.is_under_construction
@@ -1303,14 +1303,14 @@ You can supply materials to a `ConstructionSite` in much the same way as you can
 ```python3
 >>> ship = next(iter(agent.fleet))
 >>> construction_site = next(iter(ship.waypoints.construction_sites()))
->>> construction_site.data
-ConstructionSiteData({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 0}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
+>>> construction_site
+ConstructionSite({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 0}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
 >>> ship.autopilot(construction_site)
 >>> ship.cargo.inventory
 [Inventory({'symbol': 'FAB_MATS', 'name': 'Fab Mats', 'description': 'DESCRIPTION', 'units': 40})]
 >>> construction_site.supply(ship=ship, trade_symbol='FAB_MATS', units=40)
->>> construction_site.data
-ConstructionSiteData({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 40}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
+>>> construction_site
+ConstructionSite({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 40}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
 >>> ship.cargo
 Cargo({'capacity': 40, 'units': 0, 'inventory': []})
 ```
