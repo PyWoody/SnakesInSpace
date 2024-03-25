@@ -206,7 +206,7 @@ class TestMarkets:
         )
         for good in cheapest_market_data['data']['tradeGoods']:
             if good['type'] == 'IMPORT':
-                good['sellPrice'] = 1
+                good['purchasePrice'] = 1
         iron_market_data = json.load(
             open(os.path.join(DATA_DIR, 'market_data.json'), encoding='utf8')
         )

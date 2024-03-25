@@ -126,9 +126,22 @@ class Markets:
             )
             for good in goods:
                 if good.symbol == trade_symbol:
-                    if best_price is None or good.purchase_price < best_price:
+                    purchase_price = next(
+                        (
+                            i.purchase_price
+                            for i in market.data.trade_goods
+                            if i.symbol == good.symbol
+                        ), None
+                    )
+                    if best_market is None:
                         best_market = market
-                        best_price = good.purchase_price
+                        best_price = purchase_price
+                    elif purchase_price:
+                        # A market w/o a ship located at it will report that
+                        # it sells the good but won't have the sell price
+                        if not best_price or purchase_price < best_price:
+                            best_market = market
+                            best_price = purchase_price
         return best_market
 
     def cheapest_import(self, trade_symbol):
