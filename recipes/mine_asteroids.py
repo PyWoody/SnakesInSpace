@@ -59,6 +59,7 @@ def run(agent):
 
     already_mining_ships = set()
 
+    wait = 60 * 15  # Fifteen minutes between loops
     while not asteroid_queue.empty():
         for ship in agent.fleet:
             if ship.symbol not in already_mining_ships:
@@ -70,7 +71,6 @@ def run(agent):
                     )
                     t.start()
                     already_mining_ships.add(ship.symbol)
-        wait = 60 * 15  # Fifteen minutes between loops
         for _ in range(wait):
             time.sleep(1)
             # Check the queue once a second
@@ -88,7 +88,7 @@ def extract(ship, asteroid_queue):
         # Attempt to get an Asteroid symbol
         asteroid_symbol = asteroid_queue.get_nowait()
     except queue.Empty:
-        # No tasks. Exit
+        # No more asteroids. Exit
         return
     else:
         # Get the Asteroid Waypoint from the Asteroid symbol
@@ -117,7 +117,7 @@ def extract(ship, asteroid_queue):
                 # Attempt to get the next Asteroid Symbol
                 asteroid_symbol = asteroid_queue.get_nowait()
             except queue.Empty:
-                # No more tasks. Exit
+                # No more asteroids. Exit
                 return
             else:
                 # Get the Asteroid Waypoint from the Asteroid symbol
