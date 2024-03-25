@@ -1291,7 +1291,7 @@ class Ship(utils.AbstractJSONItem):
         transaction = Transaction(self.agent, data['transaction'])
         self.agent.recent_transactions.appendleft(transaction)
         return transaction
-            
+
     @transit
     def sell_all(self, trade_symbol, units=0):
         """

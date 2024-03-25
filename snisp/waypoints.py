@@ -673,7 +673,7 @@ class ConstructionSite(utils.AbstractJSONItem):
     def get(cls, agent, waypoint):
         """
         Class method that creates a ConstructionSite instance from a Waypiont
-        Useful for when going from JumpGate Waypoint type to 
+        Useful for when going from JumpGate Waypoint type to
         a ConstrutionSite type, for instance
 
         Args:
