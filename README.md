@@ -10,7 +10,7 @@ The SpaceTraders team will not be able to assist you with any issues regarding S
 
 The minimum Python version supported is currently Python 3.9.
 
-SnakesInSpace will require `httpx` to play and `pytest` if you want to run the tests yourself.
+SnakesInSpace will require `httpx` to play and `pytest` and `respx` if you want to run the tests yourself.
 
 You can install SnakesInSpace from PyPi as well
 
@@ -1418,5 +1418,5 @@ The cache can be ignored for now by the end user.
 <details>
 <summary>Tests</summary>
 
-You can run `pytest` in the current working directory for `which SnakesInSpace` is located.
+You can run `pytest` in the current working directory for `which SnakesInSpace` is located. You will also need `respx` installed to run the tests.
 </details>
