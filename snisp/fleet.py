@@ -249,6 +249,30 @@ class Ship(utils.AbstractJSONItem):
         return _system
 
     @property
+    def repair_cost(self):
+        """
+        Property that returns the current cost to repair the ship
+
+        Returns:
+            int
+        """
+        response = self.agent.client.get(f'/my/ships/{self.symbol}/repair')
+        data = response.json()['data']
+        return int(data['transaction']['totalPrice'])
+
+    @property
+    def scrap_price(self):
+        """
+        Property that returns the current scrap price for the ship
+
+        Returns:
+            int
+        """
+        response = self.agent.client.get(f'/my/ships/{self.symbol}/scrap')
+        data = response.json()['data']
+        return int(data['transaction']['totalPrice'])
+
+    @property
     def at_market(self):
         """
         Property that returns True if the Ship is DOCKED or IN_ORBIT
@@ -1191,6 +1215,33 @@ class Ship(utils.AbstractJSONItem):
 
     @retry()
     @transit
+    @docked
+    def repair(self):
+        """
+        Repairs the ship to full working condition
+
+        Ship must be located at a Shipyard
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transaction
+        """
+        payload = {'shipSymbol': self.symbol}
+        response = self.agent.client.post(
+            f'/my/ships/{self.symbol}/repair', json=payload
+        )
+        data = response.json()['data']
+        self.update_data_item('frame', data['ship']['frame'])
+        self.update_data_item('reactor', data['ship']['reactor'])
+        self.update_data_item('engine', data['ship']['engine'])
+        transaction = Transaction(self.agent, data['transaction'])
+        self.agent.recent_transactions.appendleft(transaction)
+        return transaction
+
+    @retry()
+    @transit
     @in_orbit
     @cooldown
     def scan(self):
@@ -1217,6 +1268,30 @@ class Ship(utils.AbstractJSONItem):
         for ship in data['ships']:
             yield Ship(self.agent, ship)
 
+    @retry()
+    @transit
+    @docked
+    def scrap(self):
+        """
+        Sells the ship as scrap to the Shipyard at the ship's location.
+
+        Ship must be located at a Shipyard
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            Transaction
+        """
+        payload = {'shipSymbol': self.symbol}
+        response = self.agent.client.post(
+            f'/my/ships/{self.symbol}/scrap', json=payload
+        )
+        data = response.json()['data']
+        transaction = Transaction(self.agent, data['transaction'])
+        self.agent.recent_transactions.appendleft(transaction)
+        return transaction
+            
     @transit
     def sell_all(self, trade_symbol, units=0):
         """

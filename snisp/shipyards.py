@@ -81,9 +81,6 @@ class Shipyards:
 
 class Shipyard(utils.AbstractJSONItem):
 
-    # TODO: There needs to be a convient way to get shipyard at
-    #       the current location
-
     def __init__(self, agent, shipyard):
         self.agent = agent
         self._data = shipyard

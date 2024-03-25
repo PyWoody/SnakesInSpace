@@ -1453,6 +1453,76 @@ class TestFleetShip:
         # 4000: CooldownConflictError,
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
+    def test_repair(self, respx_mock):
+        ship_data = json.load(
+            open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')
+        )
+        side_effect = GenericSideEffect(ship_data)
+        ship_route = respx_mock.get('/my/ships/TEST_SHIP_SYMBOL')
+        ship_route.side_effect = side_effect
+        dock_data = json.load(
+            open(os.path.join(DATA_DIR, 'dock.json'), encoding='utf8')
+        )
+        respx_mock.post('/my/ships/TEST_SHIP_SYMBOL/dock').mock(
+            return_value=httpx.Response(200, json=dock_data)
+        )
+        repair_data = json.load(
+            open(os.path.join(DATA_DIR, 'repair.json'), encoding='utf8')
+        )
+        repair_data['data']['transaction']['totalPrice'] = 100
+        repair_cost_data = json.load(
+            open(os.path.join(DATA_DIR, 'repair_cost.json'), encoding='utf8')
+        )
+        repair_cost_data['data']['transaction']['totalPrice'] = 100
+        respx_mock.get('/my/ships/TEST_SHIP_SYMBOL/repair').mock(
+            return_value=httpx.Response(200, json=repair_cost_data)
+        )
+        respx_mock.post('/my/ships/TEST_SHIP_SYMBOL/repair').mock(
+            return_value=httpx.Response(200, json=repair_data)
+        )
+
+        with side_effect:
+            ship = self.agent.fleet('TEST_SHIP_SYMBOL')
+            assert ship.repair_cost == 100
+            transaction = ship.repair()
+            assert transaction.total_price == 100
+
+    @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
+    def test_scrap(self, respx_mock):
+        ship_data = json.load(
+            open(os.path.join(DATA_DIR, 'ship_info.json'), encoding='utf8')
+        )
+        side_effect = GenericSideEffect(ship_data)
+        ship_route = respx_mock.get('/my/ships/TEST_SHIP_SYMBOL')
+        ship_route.side_effect = side_effect
+        dock_data = json.load(
+            open(os.path.join(DATA_DIR, 'dock.json'), encoding='utf8')
+        )
+        respx_mock.post('/my/ships/TEST_SHIP_SYMBOL/dock').mock(
+            return_value=httpx.Response(200, json=dock_data)
+        )
+        scrap_data = json.load(
+            open(os.path.join(DATA_DIR, 'scrap.json'), encoding='utf8')
+        )
+        scrap_data['data']['transaction']['totalPrice'] = 100
+        scrap_price_data = json.load(
+            open(os.path.join(DATA_DIR, 'scrap_price.json'), encoding='utf8')
+        )
+        scrap_price_data['data']['transaction']['totalPrice'] = 100
+        respx_mock.get('/my/ships/TEST_SHIP_SYMBOL/scrap').mock(
+            return_value=httpx.Response(200, json=scrap_price_data)
+        )
+        respx_mock.post('/my/ships/TEST_SHIP_SYMBOL/scrap').mock(
+            return_value=httpx.Response(200, json=scrap_data)
+        )
+
+        with side_effect:
+            ship = self.agent.fleet('TEST_SHIP_SYMBOL')
+            assert ship.scrap_price == 100
+            transaction = ship.scrap()
+            assert transaction.total_price == 100
+
+    @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_extract_with_survey(self, respx_mock):
         waypoint_data = json.load(
             open(os.path.join(DATA_DIR, 'waypoint.json'), encoding='utf8')
