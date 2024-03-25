@@ -31,6 +31,14 @@
       },
       "status": "IN_TRANSIT",
       "flightMode": "CRUISE"
-    }
+    },
+    "events": [
+      {
+        "symbol": "REACTOR_OVERLOAD",
+        "component": "FRAME",
+        "name": "string",
+        "description": "string"
+      }
+    ]
   }
 }

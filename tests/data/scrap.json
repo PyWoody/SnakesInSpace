@@ -1,0 +1,18 @@
+{
+  "data": {
+    "agent": {
+      "accountId": "string",
+      "symbol": "string",
+      "headquarters": "string",
+      "credits": 0,
+      "startingFaction": "string",
+      "shipCount": 0
+    },
+    "transaction": {
+      "waypointSymbol": "string",
+      "shipSymbol": "string",
+      "totalPrice": 0,
+      "timestamp": "2019-08-24T14:15:22Z"
+    }
+  }
+}

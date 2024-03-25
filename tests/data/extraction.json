@@ -24,6 +24,14 @@
           "units": 1
         }
       ]
-    }
+    },
+    "events": [
+      {
+        "symbol": "REACTOR_OVERLOAD",
+        "component": "FRAME",
+        "name": "string",
+        "description": "string"
+      }
+    ]
   }
 }
