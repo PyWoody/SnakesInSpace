@@ -125,7 +125,7 @@ class Waypoints:
         """
         Gets a Waypoint or Waypoint subclass.
 
-        Convenient for converting a Market back to a Waypoint
+        Convenient for converting a something back to a Waypoint
         or Waypoint subclass
 
         >>> ship = next(iter(agent.fleet))
@@ -677,7 +677,6 @@ class ConstructionSite(utils.AbstractJSONItem):
         a ConstrutionSite type, for instance
 
         Args:
-            cls: Automatically supplied by classmethod
             agent: Your Agent
             waypoint: The Waypoint to generate the ConstructionSite from
 

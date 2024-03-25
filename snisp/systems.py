@@ -38,7 +38,7 @@ class Systems:
             **filters: Top-level key, value pairs used to filter the Systems
 
         Returns:
-            StarSystem
+            StarSystem if **filters leads to a match; else, None
         """
         try:
             return next(self.find_all(**filters))
@@ -84,6 +84,7 @@ class System:
 
     @retry()
     def __call__(self, system_symbol):
+        """Returns the System for system_symbol"""
         response = self.agent.client.get(f'/systems/{system_symbol}')
         return StarSystem(self.agent, response.json()['data'])
 
@@ -134,18 +135,21 @@ class Location(utils.AbstractJSONItem):
 
     @property
     def sector(self):
+        """Property that returns the Location's sector"""
         if hq := self.headquarters:
             return hq.split('-')[0]
         return self.waypoint.split('-')[0]
 
     @property
     def system(self):
+        """Property that returns the Location's system"""
         if hq := self.headquarters:
             return '-'.join(hq.split('-')[0:2])
         return '-'.join(self.waypoint.split('-')[0:2])
 
     @property
     def waypoint(self):
+        """Property that returns the Location's waypoint"""
         if hq := self.headquarters:
             return hq
         if nav := self.nav:

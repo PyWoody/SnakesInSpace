@@ -56,7 +56,7 @@ class Shipyards:
                     Default is 300_000
 
         Returns:
-            Transactions:  List of successful Transactions or empty list
+            Transactions:  List of successful Transactions or an empty list
         """
         max_units = int(max_units)
         transactions = []
@@ -87,6 +87,7 @@ class Shipyard(utils.AbstractJSONItem):
 
     @property
     def data(self):
+        """Returns the Shipyard's ShipyardData"""
         response = self.agent.client.get(
             f'/systems/{self.system_symbol}/waypoints/'
             f'{self.symbol}/shipyard'

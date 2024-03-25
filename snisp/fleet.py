@@ -63,80 +63,46 @@ class Fleet:
         return self.agent.client.get('/my/ships', params=params)
 
     def drones(self):
-        """
-        Yields Ships where ship.frame.symbol == 'FRAME_DRONE'
-
-        Yields:
-            Ship
-        """
+        """Yields Ships where ship.frame.symbol == 'FRAME_DRONE'"""
         for ship in self:
             if ship.frame.symbol == 'FRAME_DRONE':
                 yield ship
 
     def freighters(self):
-        """
-        Yields Ships where 'FREIGHTER' in ship.frame.symbol
-
-        Yields:
-            Ship
-        """
+        """Yields Ships where 'FREIGHTER' in ship.frame.symbol"""
         for ship in self:
             if 'FREIGHTER' in ship.frame.symbol:
                 yield ship
 
     def mining_drones(self):
-        """
-        Yields Ships that are Drones and have a Mining Laser Mount
-
-        Yields:
-            Ship
-        """
+        """Yields Ships that are Drones and have a Mining Laser Mount"""
         for drone in self.drones():
             for mount in drone.mounts:
                 if mount.symbol.upper().startswith('MOUNT_MINING_LASER_'):
                     yield drone
 
     def siphon_drones(self):
-        """
-        Yields Ships that are Drones and have a Gas Siphon Mount
-
-        Yields:
-            Ship
-        """
+        """Yields Ships that are Drones and have a Gas Siphon MountShip"""
         for drone in self.drones():
             for mount in drone.mounts:
                 if mount.symbol.upper().startswith('MOUNT_GAS_SIPHON_'):
                     yield drone
 
     def probes(self):
-        """
-        Yields Ships where ship.frame.symbol == 'FRAME_PROBE'
-
-        Yields:
-            Ship
-        """
+        """Yields Ships where ship.frame.symbol == 'FRAME_PROBE'"""
         for ship in self:
             if ship.frame.symbol == 'FRAME_PROBE':
                 yield ship
 
     def ships(self):
-        """Yields Ships that are neither Drone nor Probes
-
-        Yields:
-            Ship
-        """
+        """Yields Ships that are neither Drone nor Probes"""
         for ship in self:
             if 'DRONE' not in ship.frame.symbol:
                 if 'PROBE' not in ship.frame.symbol:
                     yield ship
 
     def shuttles(self):
-        """
-        Yields Ships where 'SHUTTLE' in ship.frame.symbol
-
-        Yields:
-            Ship
-        """
+        """Yields Ships where 'SHUTTLE' in ship.frame.symbol"""
         for ship in self:
             if 'SHUTTLE' in ship.frame.symbol:
                 yield ship
@@ -412,7 +378,8 @@ class Ship(utils.AbstractJSONItem):
             False
 
         Returns:
-            Waypoint or Waypoint subclass
+            Waypoint or Waypoint subclass if *iterables return at least one
+            Waypoint or Waypoint subclass; else, None
         """
         try:
             return min(
@@ -433,7 +400,8 @@ class Ship(utils.AbstractJSONItem):
             False
 
         Returns:
-            Waypoint or Waypoint subclass
+            Waypoint or Waypoint subclass if *iterables return at least one
+            Waypoint or Waypoint subclass; else, None
         """
         try:
             return max(
@@ -974,7 +942,7 @@ class Ship(utils.AbstractJSONItem):
             True: Won't be executed until Ship reaches destination
 
         Returns:
-            Transactions:  List of successful Transactions or empty list
+            Transactions:  List of successful Transactions or an empty list
         """
         trade_symbol = trade_symbol.upper()
         if trade_symbol not in utils.GOODS_TYPES:
@@ -1248,8 +1216,8 @@ class Ship(utils.AbstractJSONItem):
         """
         Scan current System for ships
 
-        NOTE: SpaceTraders does not make it explicit who the owner of a
-              scanned ship is, so SnakesInSpace currently assumes scanned
+        NOTE: SpaceTraders does not make it explicit who is the owner of a
+              scanned ship. SnakesInSpace currently assumes scanned
               ships are owned by the Agent. Attempting to perform actions on
               a ship you do not own will lead to undefined consequences.
 
@@ -1308,7 +1276,7 @@ class Ship(utils.AbstractJSONItem):
             True: Won't be executed until Ship reaches destination
 
         Returns:
-            Transactions:  List of successful Transactions or empty list
+            Transactions:  List of successful Transactions or an empty list
         """
         transactions = []
         units = int(units)
@@ -1370,7 +1338,7 @@ class Ship(utils.AbstractJSONItem):
             True: Won't be executed until Ship reaches destination
 
         Returns:
-            Transactions:  List of successful Transactions or empty list
+            Transactions:  List of successful Transactions or an empty list
         """
 
         transactions = []

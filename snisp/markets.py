@@ -114,7 +114,7 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that sells trade_symbol is found; else None
         """
         trade_symbol = trade_symbol.upper().strip()
         best_market = None
@@ -157,7 +157,7 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that imports trade_symbol is found; else None
         """
         if imports := list(self.search(imports=trade_symbol)):
             try:
@@ -186,7 +186,7 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that imports trade_symbol is found; else None
         """
         if imports := list(self.search(imports=trade_symbol)):
             try:
@@ -217,7 +217,7 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that expports trade_symbol is found; else None
         """
         if exports := list(self.search(exports=trade_symbol)):
             try:
@@ -246,7 +246,7 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that exchanges trade_symbol is found; else None
         """
         if exchanges := list(self.search(exchanges=trade_symbol)):
             try:
@@ -277,7 +277,8 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that exports or exchanges trade_symbol is
+            found; else None
         """
         markets = []
         for market in self:
@@ -318,7 +319,7 @@ class Markets:
             trade_symbol: The symbol of the good to search
 
         Returns:
-            Market
+            Market if a Market that imports trade_symbol is found; else None
         """
         if exports := list(self.search(exports=trade_symbol)):
             try:
@@ -347,7 +348,7 @@ class Markets:
             exchanges: Find a Market that exchanges trade symbol
 
         Yields:
-            Market, MarketData
+            A tuple of (Market, MarketData)
         """
         if imports is not None:
             imports = imports.upper().strip()
@@ -377,7 +378,8 @@ class Markets:
                        for all supported ship types
 
         Returns:
-            Shipyard, ShipyardShip
+            A tuple of (Shipyard, ShipyardShip) if ship_type is found; else,
+            a tuple of (None, None)
         """
         # Reminder: Available ships will yield nothing if no probes
         #           are at the waypoint
@@ -541,7 +543,7 @@ class MarketData(utils.AbstractJSONItem):
     >>> ship = next(iter(agent.fleet))
     >>> market = next(iter(ship.markets))
     >>> market.trade_goods  # Does not exist. Returns None
-    >>> market.data.trade_goods
+    >>> market.data.trade_goods  # or, market().trade_goods
     []
     """
 
@@ -593,7 +595,8 @@ def best_market_pairs(ship, market_data, price_delta=0):
                      Default is 0
 
     Returns:
-        MarketDataRecord: Sorted list of MarketDataRecords
+        MarketDataRecord: Sorted list of MarketDataRecords if matches are
+        found; else, an empty list
     """
     market_pairs = {}
     for market in market_data:
