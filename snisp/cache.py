@@ -55,8 +55,8 @@ def waypoints_lookup(url, *, params=None):
     system = parts[-2]
     page = int(params.get('page', 0))
     page_limit = int(params.get('limit', 20))
-    traits = params.get('traits', None)
-    types = params.get('type', None)
+    traits = params.get('traits')
+    types = params.get('type')
     if data := snisp.database.get_waypoints(
         system=system,
         page_limit=page_limit,
@@ -74,8 +74,8 @@ def waypoints_insert(response, url, params=None):
     params = params if params is not None else {}
     page = int(params.get('page', 0))
     page_limit = int(params.get('limit', 20))
-    traits = params.get('traits', None)
-    types = params.get('type', None)
+    traits = params.get('traits')
+    types = params.get('type')
     snisp.database.insert_waypoints(
         response.json(),
         system=system,
