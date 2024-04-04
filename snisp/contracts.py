@@ -13,6 +13,7 @@ class Contracts:
 
     def __init__(self, agent):
         self.agent = agent
+        self.last_contract_page = 1
 
     def __iter__(self):
         """
@@ -45,8 +46,13 @@ class Contracts:
     @property
     def current(self):
         """Returns the current Contract"""
-        for contract in self:
-            pass
+        response = self.get_page(page=self.last_contract_page)
+        while data := response.json()['data']:
+            self.last_contract_page += 1
+            for _contract in data:
+                contract = Contract(self.agent, _contract)
+            response = self.get_page(page=self.last_contract_page)
+        self.last_contract_page -= 1
         return contract
 
     @retry()
