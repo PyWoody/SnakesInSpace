@@ -8,7 +8,7 @@ The SpaceTraders team will not be able to assist you with any issues regarding S
 
 ## Installation and Requirements
 
-The minimum Python version supported is currently Python 3.9.
+The minimum Python version supported is currently Python 3.11.
 
 SnakesInSpace will require `httpx` to play and `pytest` and `respx` if you want to run the tests yourself.
 
