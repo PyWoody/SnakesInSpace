@@ -8,15 +8,18 @@ The SpaceTraders team will not be able to assist you with any issues regarding S
 
 ## Installation and Requirements
 
-The minimum Python version supported is currently Python 3.11.
+The minimum Python version supported is currently Python 3.9.
 
-SnakesInSpace will require `httpx` to play and `pytest` and `respx` if you want to run the tests yourself.
-
-You can install SnakesInSpace from PyPi as well
+You can install SnakesInSpace from PyPi
 
 ```
 % pip install SnakesInSpace
 ```
+
+Note, the `SnakesInSpace` package will have an importable name of `snisp`.
+
+If you want to build from source, SnakesInSpace will require `httpx` and `python-dateutil` to play and `pytest` and `respx` if you want to run the tests yourself.
+
 
 
 

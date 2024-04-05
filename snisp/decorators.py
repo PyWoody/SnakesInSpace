@@ -1,3 +1,4 @@
+import dateutil
 import functools
 import httpx
 import itertools
@@ -53,7 +54,7 @@ def cooldown(func):
         for ship in itertools.chain(args, kwargs.values()):
             if isinstance(ship, snisp.fleet.Ship):
                 if expires := ship.cooldown.expiration:
-                    expires = datetime.fromisoformat(expires)
+                    expires = dateutil.parser.parse(expires)
                     delta = expires - datetime.now(timezone.utc)
                     if delta.days >= 0:  # pragma: no cover aka impatient
                         time.sleep(delta.seconds)

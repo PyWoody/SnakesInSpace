@@ -1,3 +1,4 @@
+import dateutil
 import httpx
 import json
 import logging
@@ -128,7 +129,7 @@ def load_user(
         if not symbol and not token:
             if user := max(
                 user_data.get('users', []),
-                key=lambda x: datetime.fromisoformat(x['last_login'])
+                key=lambda x: dateutil.parser.parse(x['last_login'])
             ):
                 user['last_login'] = last_login
                 with open(config_file, 'w', encoding='utf8') as f:

@@ -1,3 +1,4 @@
+import dateutil
 import functools
 import itertools
 import logging
@@ -129,7 +130,7 @@ class Ship(utils.AbstractJSONItem):
             int: sceond to arrival if ship is IN_TRANSIT; else, 0
         """
         if self.nav.status == 'IN_TRANSIT':
-            arrival = datetime.fromisoformat(self.nav.route.arrival)
+            arrival = dateutil.parser.parse(self.nav.route.arrival)
             delta = arrival - datetime.now(timezone.utc)
             return delta.seconds if delta.days >= 0 else 0
         return 0

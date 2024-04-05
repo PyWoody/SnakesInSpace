@@ -1,3 +1,4 @@
+import dateutil
 import json
 import logging
 import os
@@ -47,7 +48,7 @@ def get_waypoints(
     con.close()
     if result:
         if last_updated := result[1]:  # pragma: no cover
-            last_updated = datetime.fromisoformat(last_updated)
+            last_updated = dateutil.parser.parse(last_updated)
             delta = datetime.now(timezone.utc) - last_updated
             if delta.seconds and (delta.seconds / 60) >= cache_mins:
                 return

@@ -1,4 +1,5 @@
 import copy
+import dateutil
 import httpx
 import inspect
 import itertools
@@ -3091,7 +3092,7 @@ class ExtractionSideEffect:
                             400, json={'error': {'data': {'code': 4220}}}
                         )
             now = datetime.now(timezone.utc)
-            expires = datetime.fromisoformat(
+            expires = dateutil.parser.parse(
                 payload['surveys'][0]['expiration']
             )
             if now > expires:

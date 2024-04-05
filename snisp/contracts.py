@@ -1,3 +1,4 @@
+import dateutil
 import logging
 
 from datetime import datetime, timezone
@@ -75,7 +76,7 @@ class Contract(utils.AbstractJSONItem):
         Returns:
             bool
         """
-        expiration = datetime.fromisoformat(self.terms.deadline)
+        expiration = dateutil.parser.parse(self.terms.deadline)
         return datetime.now(timezone.utc) >= expiration
 
     @property
