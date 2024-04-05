@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-version = "0.0.12"
+version = "0.0.13"
 dependencies = ["httpx"]
 
 [project.urls]
