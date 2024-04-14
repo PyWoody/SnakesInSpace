@@ -1163,7 +1163,7 @@ class Ship(utils.AbstractJSONItem):
     @docked
     def repair_cost(self):
         """
-        Property that returns the current cost to repair the ship
+        Returns the current cost to repair the ship
 
         Ship must be located at a Shipyard
 
@@ -1241,7 +1241,7 @@ class Ship(utils.AbstractJSONItem):
     @docked
     def scrap_price(self):
         """
-        Property that returns the current scrap price for the ship
+        Returns the current scrap price for the ship
 
         Ship must be located at a Shipyard
 
