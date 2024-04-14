@@ -216,30 +216,6 @@ class Ship(utils.AbstractJSONItem):
         return _system
 
     @property
-    def repair_cost(self):
-        """
-        Property that returns the current cost to repair the ship
-
-        Returns:
-            int
-        """
-        response = self.agent.client.get(f'/my/ships/{self.symbol}/repair')
-        data = response.json()['data']
-        return int(data['transaction']['totalPrice'])
-
-    @property
-    def scrap_price(self):
-        """
-        Property that returns the current scrap price for the ship
-
-        Returns:
-            int
-        """
-        response = self.agent.client.get(f'/my/ships/{self.symbol}/scrap')
-        data = response.json()['data']
-        return int(data['transaction']['totalPrice'])
-
-    @property
     def at_market(self):
         """
         Property that returns True if the Ship is DOCKED or IN_ORBIT
@@ -1185,6 +1161,25 @@ class Ship(utils.AbstractJSONItem):
     @retry()
     @transit
     @docked
+    def repair_cost(self):
+        """
+        Property that returns the current cost to repair the ship
+
+        Ship must be located at a Shipyard
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            int
+        """
+        response = self.agent.client.get(f'/my/ships/{self.symbol}/repair')
+        data = response.json()['data']
+        return int(data['transaction']['totalPrice'])
+
+    @retry()
+    @transit
+    @docked
     def repair(self):
         """
         Repairs the ship to full working condition
@@ -1205,6 +1200,10 @@ class Ship(utils.AbstractJSONItem):
         self.update_data_item('frame', data['ship']['frame'])
         self.update_data_item('reactor', data['ship']['reactor'])
         self.update_data_item('engine', data['ship']['engine'])
+        logger.info(
+            f'{self.registration.role}: {self.symbol} | '
+            f'Repaired ship for ${data["transaction"]["totalPrice"]:,.2f}'
+        )
         transaction = Transaction(self.agent, data['transaction'])
         self.agent.recent_transactions.appendleft(transaction)
         return transaction
@@ -1240,6 +1239,25 @@ class Ship(utils.AbstractJSONItem):
     @retry()
     @transit
     @docked
+    def scrap_price(self):
+        """
+        Property that returns the current scrap price for the ship
+
+        Ship must be located at a Shipyard
+
+        Blocks:
+            True: Won't be executed until Ship reaches destination
+
+        Returns:
+            int
+        """
+        response = self.agent.client.get(f'/my/ships/{self.symbol}/scrap')
+        data = response.json()['data']
+        return int(data['transaction']['totalPrice'])
+
+    @retry()
+    @transit
+    @docked
     def scrap(self):
         """
         Sells the ship as scrap to the Shipyard at the ship's location.
@@ -1257,6 +1275,10 @@ class Ship(utils.AbstractJSONItem):
             f'/my/ships/{self.symbol}/scrap', json=payload
         )
         data = response.json()['data']
+        logger.info(
+            f'{self.registration.role}: {self.symbol} | '
+            f'Scraped ship for ${data["transaction"]["totalPrice"]:,.2f}'
+        )
         transaction = Transaction(self.agent, data['transaction'])
         self.agent.recent_transactions.appendleft(transaction)
         return transaction

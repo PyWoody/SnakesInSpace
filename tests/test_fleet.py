@@ -1484,7 +1484,7 @@ class TestFleetShip:
 
         with side_effect:
             ship = self.agent.fleet('TEST_SHIP_SYMBOL')
-            assert ship.repair_cost == 100
+            assert ship.repair_cost() == 100
             transaction = ship.repair()
             assert transaction.total_price == 100
 
@@ -1519,7 +1519,7 @@ class TestFleetShip:
 
         with side_effect:
             ship = self.agent.fleet('TEST_SHIP_SYMBOL')
-            assert ship.scrap_price == 100
+            assert ship.scrap_price() == 100
             transaction = ship.scrap()
             assert transaction.total_price == 100
 
