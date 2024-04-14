@@ -81,6 +81,7 @@ class Fleet:
             for mount in drone.mounts:
                 if mount.symbol.upper().startswith('MOUNT_MINING_LASER_'):
                     yield drone
+                    break
 
     def siphon_drones(self):
         """Yields Ships that are Drones and have a Gas Siphon MountShip"""
@@ -88,6 +89,7 @@ class Fleet:
             for mount in drone.mounts:
                 if mount.symbol.upper().startswith('MOUNT_GAS_SIPHON_'):
                     yield drone
+                    break
 
     def probes(self):
         """Yields Ships where ship.frame.symbol == 'FRAME_PROBE'"""
