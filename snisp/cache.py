@@ -25,6 +25,12 @@ def insert_fuel_stations(location, fuel_stations):
     FUEL_STATIONS[location.system] = list(fuel_stations)
 
 
+def reset_fuel_stations(location):
+    # Assumes the calling thread is already under a lock
+    # Ideally, it will be the agent's lock
+    FUEL_STATIONS[location.system] = []
+
+
 def lookup(*args, **kwargs):
     # args: (client, url)
     # kwargs: {params}

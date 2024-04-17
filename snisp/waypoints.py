@@ -3,7 +3,7 @@ import logging
 
 from collections import Counter
 
-from snisp import exceptions, utils, systems
+from snisp import cache, database, exceptions, utils, systems
 from snisp.decorators import cooldown, docked, in_orbit, retry, transit
 from snisp.exceptions import ClientError
 from snisp.shipyards import Shipyard
@@ -236,6 +236,9 @@ class Waypoints:
                     )
                     return Chart(self.agent, {})
             raise e
+        with self.agent.lock:
+            cache.reset_fuel_stations(ship.location)
+            database.reset_system(ship.location.system)
         logger.info(
             f'{ship.registration.role}: {ship.symbol} | '
             f'Charted {ship.nav.waypoint_symbol}'

@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 def get_waypoints(
-        *,
-        system,
-        page_limit,
-        page=0,
-        traits=None,
-        types=None,
-        cache_mins=15,
+    *,
+    system,
+    page_limit,
+    page=0,
+    traits=None,
+    types=None,
+    cache_mins=15,
 ):
     con = sqlite3.connect(DATABASE)
     cur = con.cursor()
@@ -105,6 +105,27 @@ def insert_waypoints(
         logger.warning(
             f'Failed to insert data for waypoints at page {page:,}'
         )
+        con.rollback()
+    con.close()
+    return result
+
+
+def reset_system(system):
+    con = sqlite3.connect(DATABASE)
+    cur = con.cursor()
+    _ = cur.execute('''
+        DELETE FROM
+            waypoints
+        WHERE
+            system = (?)
+        ''', (system,)
+    )
+    result = False
+    if cur.rowcount:  # pragma: no cover
+        con.commit()
+        result = True
+    else:  # pragma: no cover
+        logger.warning(f'Failed to drop data for system: {system}')
         con.rollback()
     con.close()
     return result
