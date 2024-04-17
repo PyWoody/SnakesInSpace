@@ -120,15 +120,8 @@ def reset_system(system):
             system = (?)
         ''', (system,)
     )
-    result = False
-    if cur.rowcount:  # pragma: no cover
-        con.commit()
-        result = True
-    else:  # pragma: no cover
-        logger.warning(f'Failed to drop data for system: {system}')
-        con.rollback()
+    con.commit()
     con.close()
-    return result
 
 
 def setup():
