@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-version = "0.0.15"
+version = "0.0.16"
 dependencies = ["httpx", "python-dateutil"]
 
 [project.urls]
