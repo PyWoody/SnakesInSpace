@@ -20,6 +20,9 @@ Note, the `SnakesInSpace` package will have an importable name of `snisp`.
 
 If you want to build from source, SnakesInSpace will require `httpx` and `python-dateutil` to play and `pytest` and `respx` if you want to run the tests yourself.
 
+## My Current Agents
+
+My current Agents are `00--AA--00` and `SNAKEINSPACE`. In the future, I will be playing under `SNAKESINSPACE`.
 
 
 
