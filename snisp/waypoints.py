@@ -686,10 +686,20 @@ class ConstructionSite(utils.AbstractJSONItem):
         Returns:
             ConstructionSite
         """
-        response = agent.client.get(
-            f'/systems/{waypoint.system_symbol}/'
-            f'waypoints/{waypoint.symbol}/construction'
-        )
+        try:
+            response = agent.client.get(
+                f'/systems/{waypoint.system_symbol}/'
+                f'waypoints/{waypoint.symbol}/construction'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'ConstructionSite at {waypoint!r} '
+                        'has not been charted.'
+                    )
+                    return cls(agent, {})
+            raise e
         data = response.json()['data']
         data['systemSymbol'] = waypoint.system_symbol
         data['symbol'] = waypoint.symbol
@@ -704,10 +714,20 @@ class ConstructionSite(utils.AbstractJSONItem):
         Returns:
             A new ConstructionSite instance from self
         """
-        response = self.agent.client.get(
-            f'/systems/{self.system_symbol}/waypoints/'
-            f'{self.symbol}/construction'
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.system_symbol}/waypoints/'
+                f'{self.symbol}/construction'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'ConstructionSite at {self.location!r} '
+                        'has not been charted.'
+                    )
+                    return ConstructionSite(self.agent, {})
+            raise e
         data = response.json()['data']
         data['systemSymbol'] = self.system_symbol
         data['symbol'] = self.symbol
@@ -797,10 +817,19 @@ class JumpGate(utils.AbstractJSONItem):
 
     @property
     def data(self):
-        response = self.agent.client.get(
-            f'/systems/{self.system_symbol}/waypoints/'
-            f'{self.symbol}/jump-gate'
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.system_symbol}/waypoints/'
+                f'{self.symbol}/jump-gate'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'JumpGate at {self.location!r} has not been charted.'
+                    )
+                    return JumpGateData(self.agent, {})
+            raise e
         return JumpGateData(self.agent, response.json()['data'])
 
 

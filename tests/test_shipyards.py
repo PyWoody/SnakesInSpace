@@ -196,6 +196,17 @@ class TestShipyard:
 
         assert shipyard.data.symbol == 'TEST-SYSTEM-CLOSESTWAYPOINT'
         assert shipyard.data.to_dict() == shipyards_data['data']
+        
+        with shipyards_side_effect as tmp:
+            shipyard = next(iter(ship.shipyards))
+            tmp.uncharted = True
+            assert shipyard.data.to_dict() == {}
+
+        with shipyards_side_effect as tmp:
+            shipyard = next(iter(ship.shipyards))
+            tmp.invalid = True
+            with pytest.raises(snisp.exceptions.ClientError):
+                shipyard.data
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_purchase(self, respx_mock):
@@ -316,6 +327,24 @@ class TestShipyard:
             with pytest.raises(snisp.exceptions.NoShipAtLocationError):
                 list(shipyard.transactions())
 
+        with fleet_side_effect as fleet_tmp, shipyards_side_effect  as yard_tmp:
+            yard_tmp.uncharted = True
+            fleet_tmp.data['data'][0]['nav']['status'] = 'IN_ORBIT'
+            fleet_tmp.data['data'][0]['nav']['waypointSymbol'] = 'TEST-SYSTEM-WAYPOINT'  # noqa: E501
+            ship = self.agent.fleet('TEST_SHIP_SYMBOL')
+            shipyard = snisp.shipyards.Shipyard(self.agent, shipyard.to_dict())
+            for transaction in shipyard.transactions():
+                assert transaction.to_dict() == {}
+
+        with fleet_side_effect as fleet_tmp, shipyards_side_effect  as yard_tmp:
+            yard_tmp.invalid = True
+            fleet_tmp.data['data'][0]['nav']['status'] = 'IN_ORBIT'
+            fleet_tmp.data['data'][0]['nav']['waypointSymbol'] = 'TEST-SYSTEM-WAYPOINT'  # noqa: E501
+            ship = self.agent.fleet('TEST_SHIP_SYMBOL')
+            shipyard = snisp.shipyards.Shipyard(self.agent, shipyard.to_dict())
+            with pytest.raises(snisp.exceptions.ClientError):
+                next(shipyard.transactions())
+
 
 class TestShipyardShip:
 
@@ -361,6 +390,18 @@ class TestShipyardShip:
 
         with pytest.raises(snisp.exceptions.SpaceAttributeError):
             ships = list(shipyard.available_ships('invalid'))
+        
+        with shipyards_side_effect as tmp:
+            shipyard = next(iter(ship.shipyards))
+            tmp.uncharted = True
+            for _ship in shipyard.available_ships():
+                assert _ship.to_dict() == {}
+
+        with shipyards_side_effect as tmp:
+            shipyard = next(iter(ship.shipyards))
+            tmp.invalid = True
+            with pytest.raises(snisp.exceptions.ClientError):
+                next(shipyard.available_ships())
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_purchase(self, respx_mock):
@@ -432,10 +473,20 @@ class ShipyardsSideEffect:
         self.data = copy.deepcopy(self.orig_data)
         self.orig_waypoints = waypoints
         self.waypoints = copy.deepcopy(self.orig_waypoints)
+        self.uncharted = False
+        self.invalid = False
 
     def __call__(self, request, route):
         if int(request.url.params.get('page', 1)) > 1:
             return httpx.Response(200, json={'data': {}})
+        if self.invalid:
+            return httpx.Response(
+                400, json={'error': {'data': {'code': 404}}}
+            )
+        if self.uncharted:
+            return httpx.Response(
+                400, json={'error': {'data': {'code': 4001}}}
+            )
         return httpx.Response(200, json=self.data)
 
     def waypoints_side_effect(self, request, route):
@@ -459,6 +510,8 @@ class ShipyardsSideEffect:
     def reset(self):
         self.data = copy.deepcopy(self.orig_data)
         self.waypoints = copy.deepcopy(self.orig_waypoints)
+        self.unchartted = False
+        self.invalid = False
 
 
 class FleetSideEffect:

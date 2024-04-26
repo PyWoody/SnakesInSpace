@@ -2,6 +2,7 @@ import logging
 
 from snisp import exceptions, fleet, utils, waypoints
 from snisp.decorators import retry
+from snisp.exceptions import ClientError
 
 
 logger = logging.getLogger(__name__)
@@ -88,10 +89,19 @@ class Shipyard(utils.AbstractJSONItem):
     @property
     def data(self):
         """Returns the Shipyard's ShipyardData"""
-        response = self.agent.client.get(
-            f'/systems/{self.system_symbol}/waypoints/'
-            f'{self.symbol}/shipyard'
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.system_symbol}/waypoints/'
+                f'{self.symbol}/shipyard'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'Shipyard at {self.location!r} has not been charted.'
+                    )
+                    return ShipyardData(self.agent, {})
+            raise e
         return ShipyardData(self.agent, response.json()['data'])
 
     @retry()
@@ -116,10 +126,20 @@ class Shipyard(utils.AbstractJSONItem):
                 f'{ship_type} is not an acceptable Ship type. '
                 'See snisp.utils.SHIP_TYPES for acceptable types.'
             )
-        response = self.agent.client.get(
-            f'/systems/{self.system_symbol}'
-            f'/waypoints/{self.symbol}/shipyard'
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.system_symbol}'
+                f'/waypoints/{self.symbol}/shipyard'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'Shipyard at {self.location!r} has not been charted.'
+                    )
+                    yield ShipyardData(self.agent, {})
+                    return
+            raise e
         for ship in response.json()['data'].get('ships', []):
             if ship_type is not None and ship_type != ship['type']:
                 continue
@@ -179,10 +199,20 @@ class Shipyard(utils.AbstractJSONItem):
                 f'No ships located at {self.symbol!r} for {cls}'
             )
         params = {'page': int(page)}
-        response = self.agent.client.get(
-            f'/systems/{self.system_symbol}/'
-            f'waypoints/{self.symbol}/shipyard', params=params
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.system_symbol}/'
+                f'waypoints/{self.symbol}/shipyard', params=params
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'Shipyard at {self.location!r} has not been charted.'
+                    )
+                    yield ShipyardData(self.agent, {})
+                    return
+            raise e
         transactions = response.json()['data'].get('transactions', [])
         while transactions:
             for transaction in transactions:

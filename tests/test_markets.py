@@ -98,6 +98,48 @@ class TestMarkets:
             with pytest.raises(snisp.exceptions.MarketNotFoundError):
                 ship.markets()
 
+        with market_side_effect as tmp:
+            tmp.uncharted = True
+            assert ship.markets().to_dict() == {}
+
+        market_dict = ship.markets().to_dict()
+        market_dict['location'] = snisp.systems.Location(
+            self.agent, {'headquarters': ship.location.nav.waypoint_symbol}
+        )
+        market = snisp.markets.Market(self.agent, market_dict)
+        with market_side_effect as tmp:
+            tmp.uncharted = True
+            assert market.data.to_dict() == {}
+
+        market_dict = ship.markets().to_dict()
+        market_dict['location'] = snisp.systems.Location(
+            self.agent, {'headquarters': ship.location.nav.waypoint_symbol}
+        )
+        market = snisp.markets.MarketData(self.agent, market_dict)
+        with market_side_effect as tmp:
+            tmp.uncharted = True
+            assert market.data.to_dict() == {}
+
+        market_dict = ship.markets().to_dict()
+        market_dict['location'] = snisp.systems.Location(
+            self.agent, {'headquarters': ship.location.nav.waypoint_symbol}
+        )
+        market = snisp.markets.MarketData(self.agent, market_dict)
+        with market_side_effect as tmp:
+            tmp.invalid = True
+            with pytest.raises(snisp.exceptions.ClientError):
+                market.data
+
+        market_dict = ship.markets().to_dict()
+        market_dict['location'] = snisp.systems.Location(
+            self.agent, {'headquarters': ship.location.nav.waypoint_symbol}
+        )
+        market = snisp.markets.Market(self.agent, market_dict)
+        with market_side_effect as tmp:
+            tmp.invalid = True
+            with pytest.raises(snisp.exceptions.ClientError):
+                market.data
+
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_search(self, respx_mock):
         waypoints_data = json.load(
@@ -1454,6 +1496,7 @@ class MarketSideEffect:
         self.data = copy.deepcopy(self.orig_data)
         self.invalid = False
         self.not_found = False
+        self.uncharted = False
 
     def __call__(self, request, route):
         if self.invalid:
@@ -1463,6 +1506,10 @@ class MarketSideEffect:
         if self.not_found:
             return httpx.Response(
                 400, json={'error': {'data': {'code': 4603}}}
+            )
+        if self.uncharted:
+            return httpx.Response(
+                400, json={'error': {'data': {'code': 4001}}}
             )
         return httpx.Response(200, json=self.data)
 
@@ -1477,6 +1524,7 @@ class MarketSideEffect:
         self.data = copy.deepcopy(self.orig_data)
         self.invalid = False
         self.not_found = False
+        self.uncharted = False
 
 
 class MarketsSideEffect:

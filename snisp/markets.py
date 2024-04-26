@@ -88,8 +88,12 @@ class Markets:
             if data := e.data:
                 if data.get('code') == 404:
                     logger.warning(
-                        f'Waypoint at {system_symbol}-->{waypoint_symbol} '
-                        'does not exist'
+                        f'Market at {waypoint_symbol} does not exist'
+                    )
+                    return MarketData(self.agent, {})
+                elif data.get('code') == 4001:
+                    logger.warning(
+                        f'Waypoint at {waypoint_symbol} has not been charted.'
                     )
                     return MarketData(self.agent, {})
             raise e
@@ -518,9 +522,19 @@ class Market(utils.AbstractJSONItem):
             MarketData
         """
         # REMINDER: This is the same data returned by Markets.__call__
-        response = self.agent.client.get(
-            f'/systems/{self.location.system}/waypoints/{self.symbol}/market'
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.location.system}/waypoints'
+                f'/{self.symbol}/market'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'Market at {self.location!r} has not been charted.'
+                    )
+                    return MarketData(self.agent, {})
+            raise e
         data = response.json()['data']
         data['location'] = self.location
         if not data.get('tradeGoods'):
@@ -566,9 +580,19 @@ class MarketData(utils.AbstractJSONItem):
             MarketData
         """
         # REMINDER: This is the same data returned by Markets.__call__
-        response = self.agent.client.get(
-            f'/systems/{self.location.system}/waypoints/{self.symbol}/market'
-        )
+        try:
+            response = self.agent.client.get(
+                f'/systems/{self.location.system}/waypoints'
+                f'/{self.symbol}/market'
+            )
+        except ClientError as e:
+            if data := e.data:
+                if data.get('code') == 4001:
+                    logger.warning(
+                        f'Market at {self.location!r} has not been charted.'
+                    )
+                    return MarketData(self.agent, {})
+            raise e
         data = response.json()['data']
         data['location'] = self.location
         if not data.get('tradeGoods'):

@@ -92,7 +92,10 @@ def retry(jitter=.2, max_retries=5):
 
         @functools.wraps(func)
         def inner(*args, **kwargs):
-            ship = args[0]
+            if type(args[0]) == type:  # classmethod
+                agent = args[1]
+            else:
+                agent = args[0].agent
             for attempt in range(1, max_retries + 1):
                 try:
                     return func(*args, **kwargs)
@@ -101,7 +104,7 @@ def retry(jitter=.2, max_retries=5):
                         f'Attempt: {attempt}/{max_retries}. '
                         f'Received {e!r}.'
                     )
-                    if not ship.agent.client.testing:  # pragma: no cover
+                    if not agent.client.testing:  # pragma: no cover
                         time.sleep(jitter * attempt)
                     last_exception = e
                 except snisp.exceptions.ClientError as e:
@@ -114,7 +117,7 @@ def retry(jitter=.2, max_retries=5):
                             'cooldown'
                         ):  # pragma: no cover
                             if wait := cooldown.get('remainingSeconds'):
-                                if not ship.agent.client.testing:
+                                if not agent.client.testing:
                                     time.sleep(float(wait))
                         elif wait := max(
                             [
@@ -123,7 +126,7 @@ def retry(jitter=.2, max_retries=5):
                                 data.get('remainingSeconds', 0),
                             ]
                         ):  # pragma: no cover
-                            if not ship.agent.client.testing:
+                            if not agent.client.testing:
                                 time.sleep(float(wait))
                         elif code := data.get('code'):
                             if err := snisp.exceptions.error_codes.get(

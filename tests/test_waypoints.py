@@ -517,12 +517,12 @@ class TestWaypoint:
             )
         )
         construction_data['data']['systemSymbol'] = 'TEST-SYSTEM'
-        respx_mock.get(
+        construction_side_effect = ConstructionSiteSideEffect(construction_data)
+        construction_route = respx_mock.get(
             '/systems/TEST-SYSTEM/waypoints/'
             'TEST-SYSTEM-CONSTRUCTION/construction'
-        ).mock(
-            return_value=httpx.Response(200, json=construction_data)
         )
+        construction_route.side_effect = construction_side_effect
 
         construction_site = snisp.waypoints.ConstructionSite(
             self.agent, construction_data['data']
@@ -532,6 +532,43 @@ class TestWaypoint:
         assert construction_site.refresh().to_dict() == construction_site.to_dict()  # noqa: E501
         assert construction_site.refresh().refresh().to_dict() == construction_site.to_dict()  # noqa: E501
         assert construction_site.refresh().to_dict() == construction_data['data']  # noqa: E501
+
+        waypoint_data = json.load(
+            open(os.path.join(DATA_DIR, 'waypoint.json'), encoding='utf8')
+        )
+        waypoint_data['data']['waypointSymbol'] = 'TEST-SYSTEM-CONSTRUCTION'
+        waypoint_data['data']['symbol'] = 'TEST-SYSTEM-CONSTRUCTION'
+        waypoint = snisp.waypoints.Waypoint(self.agent, waypoint_data['data'])
+
+        with construction_side_effect as tmp:
+            tmp.uncharted = True
+            construction_site = snisp.waypoints.ConstructionSite(
+                self.agent, construction_data['data']
+            )
+            assert construction_site.get(self.agent, waypoint).to_dict() == {}
+
+        with construction_side_effect as tmp:
+            tmp.fail = True
+            construction_site = snisp.waypoints.ConstructionSite(
+                self.agent, construction_data['data']
+            )
+            with pytest.raises(snisp.exceptions.ClientError):
+                construction_site.get(self.agent, waypoint).to_dict()
+
+        with construction_side_effect as tmp:
+            tmp.uncharted = True
+            construction_site = snisp.waypoints.ConstructionSite(
+                self.agent, construction_data['data']
+            )
+            assert construction_site.refresh().to_dict() == {}
+
+        with construction_side_effect as tmp:
+            tmp.fail = True
+            construction_site = snisp.waypoints.ConstructionSite(
+                self.agent, construction_data['data']
+            )
+            with pytest.raises(snisp.exceptions.ClientError):
+                construction_site.refresh()
 
     @pytest.mark.respx(base_url='https://api.spacetraders.io/v2')
     def test_refresh(self, respx_mock):
@@ -700,6 +737,49 @@ class TestWaypoint:
             assert snisp.utils.ilen(ship.waypoints.jump_gates()) == 1
             jump_gate = next(ship.waypoints.jump_gates())
             assert jump_gate.data.to_dict() == jump_gate.to_dict()
+
+        with waypoints_side_effect as tmp:
+            tmp.data['data'][-1]['type'] = 'JUMP_GATE'
+            respx_mock.get(
+                '/systems/TEST-SYSTEM/waypoints/'
+                'TEST-SYSTEM-FARTHESTWAYPOINT/jump-gate'
+            ).mock(
+                return_value=httpx.Response(
+                    200, json={'data': tmp.data['data'][-1]}
+                )
+            )
+            jump_gate = next(ship.waypoints.jump_gates())
+            respx_mock.get(
+                '/systems/TEST-SYSTEM/waypoints/'
+                'TEST-SYSTEM-FARTHESTWAYPOINT/jump-gate'
+            ).mock(
+                return_value=httpx.Response(
+                    4001, json={'error': {'data': {'code': 4001}}}
+                )
+            )
+            assert jump_gate.data.to_dict() == {}
+
+        with waypoints_side_effect as tmp:
+            tmp.data['data'][-1]['type'] = 'JUMP_GATE'
+            respx_mock.get(
+                '/systems/TEST-SYSTEM/waypoints/'
+                'TEST-SYSTEM-FARTHESTWAYPOINT/jump-gate'
+            ).mock(
+                return_value=httpx.Response(
+                    200, json={'data': tmp.data['data'][-1]}
+                )
+            )
+            jump_gate = next(ship.waypoints.jump_gates())
+            respx_mock.get(
+                '/systems/TEST-SYSTEM/waypoints/'
+                'TEST-SYSTEM-FARTHESTWAYPOINT/jump-gate'
+            ).mock(
+                return_value=httpx.Response(
+                    400, json={'error': {'data': {'code': 400}}}
+                )
+            )
+            with pytest.raises(snisp.exceptions.ClientError):
+                jump_gate.data
 
         with waypoints_side_effect as tmp:
             for wp in tmp.data['data']:
@@ -1103,3 +1183,35 @@ class BestAsteroidSideEffect:
         self.contracts_data = copy.deepcopy(self.orig_contracts)
         self.surveys_data = copy.deepcopy(self.orig_surveys)
         self.waypoint_data = copy.deepcopy(self.orig_waypoint)
+
+
+class ConstructionSiteSideEffect:
+
+    def __init__(self, data):
+        self.orig_data = data
+        self.data = copy.deepcopy(self.orig_data)
+        self.uncharted = False
+        self.fail = False
+
+    def __call__(self, request, route):
+        if self.fail:
+            return httpx.Response(
+                400, json={'error': {'data': {'code': 400}}}
+            )
+        if self.uncharted:
+            return httpx.Response(
+                4001, json={'error': {'data': {'code': 4001}}}
+            )
+        return httpx.Response(200, json=self.data)
+
+    def __enter__(self):
+        self.reset()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.reset()
+
+    def reset(self):
+        self.data = copy.deepcopy(self.orig_data)
+        self.uncharted = False
+        self.fail = False
