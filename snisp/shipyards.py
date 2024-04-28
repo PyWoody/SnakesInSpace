@@ -1,5 +1,7 @@
 import logging
 
+from collections import defaultdict
+
 from snisp import exceptions, fleet, utils, waypoints
 from snisp.decorators import retry
 from snisp.exceptions import ClientError
@@ -100,7 +102,7 @@ class Shipyard(utils.AbstractJSONItem):
                     logger.warning(
                         f'Shipyard at {self.location!r} has not been charted.'
                     )
-                    return ShipyardData(self.agent, {})
+                    return ShipyardData(self.agent, defaultdict(list))
             raise e
         return ShipyardData(self.agent, response.json()['data'])
 
@@ -137,7 +139,7 @@ class Shipyard(utils.AbstractJSONItem):
                     logger.warning(
                         f'Shipyard at {self.location!r} has not been charted.'
                     )
-                    yield ShipyardData(self.agent, {})
+                    yield ShipyardData(self.agent, defaultdict(list))
                     return
             raise e
         for ship in response.json()['data'].get('ships', []):
@@ -210,7 +212,7 @@ class Shipyard(utils.AbstractJSONItem):
                     logger.warning(
                         f'Shipyard at {self.location!r} has not been charted.'
                     )
-                    yield ShipyardData(self.agent, {})
+                    yield ShipyardData(self.agent, defaultdict(list))
                     return
             raise e
         transactions = response.json()['data'].get('transactions', [])
