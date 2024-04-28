@@ -619,8 +619,7 @@ class Ship(utils.AbstractJSONItem):
         self.update_data_item('cooldown', data['cooldown'])
         logger.info(
             f'{self.registration.role}: {self.symbol} | '
-            f'Jumped to {waypoint.symbol} via '
-            f'Will reach destination in {self.arrival / 60:.1f} minutes'
+            f'Jumped to {waypoint.symbol}'
         )
         return data
 
@@ -1560,8 +1559,7 @@ class Ship(utils.AbstractJSONItem):
         self.update_data_item('fuel', data['fuel'])
         logger.info(
             f'{self.registration.role}: {self.symbol} | '
-            f'Warping to {waypoint.symbol} '
-            f'Will reach destination in {self.arrival / 60:.1f} minutes'
+            f'Warped to {waypoint.symbol} '
         )
         return data
 
