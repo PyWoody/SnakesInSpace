@@ -1,7 +1,7 @@
 import itertools
 import logging
 
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
 from snisp import cache, utils
 from snisp.exceptions import ClientError
@@ -90,12 +90,16 @@ class Markets:
                     logger.warning(
                         f'Market at {waypoint_symbol} does not exist'
                     )
-                    return MarketData(self.agent, defaultdict(list))
+                    return MarketData(
+                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                    )
                 elif data.get('code') == 4001:
                     logger.warning(
                         f'Waypoint at {waypoint_symbol} has not been charted.'
                     )
-                    return MarketData(self.agent, defaultdict(list))
+                    return MarketData(
+                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                    )
             raise e
         data = response.json()['data']
         data['location'] = Location(
@@ -533,7 +537,9 @@ class Market(utils.AbstractJSONItem):
                     logger.warning(
                         f'Market at {self.location!r} has not been charted.'
                     )
-                    return MarketData(self.agent, defaultdict(list))
+                    return MarketData(
+                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                    )
             raise e
         data = response.json()['data']
         data['location'] = self.location
@@ -591,7 +597,9 @@ class MarketData(utils.AbstractJSONItem):
                     logger.warning(
                         f'Market at {self.location!r} has not been charted.'
                     )
-                    return MarketData(self.agent, defaultdict(list))
+                    return MarketData(
+                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                    )
             raise e
         data = response.json()['data']
         data['location'] = self.location
