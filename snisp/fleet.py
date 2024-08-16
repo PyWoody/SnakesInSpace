@@ -626,7 +626,7 @@ class Ship(utils.AbstractJSONItem):
     def autopilot(
         self,
         waypoint,
-        flight_mode='CRUISE',
+        flight_mode='BURN',
         done_callback=None,
     ):
         """
@@ -651,149 +651,105 @@ class Ship(utils.AbstractJSONItem):
             waypoint: Waypoint or Waypoint subclass type
 
         Kwargs:
-            flight_mode: Starting flight_mode. Default is CRUISE
+            flight_mode: Starting flight_mode. Default is BURN
             done_callback: callable() item that will be executed before
                            returning
 
         Blocks:
             True: until Ship reaches destination
 
-        Returns:
+        Raises:
             NavigateInsufficientFuelError: Ran out of Fuel
         """
-        # A complete mess
+        def navigate_to_next_waypoint():
+            for index, wp in enumerate(waypoints, start=1):
+                if wp.symbol == self.nav.waypoint_symbol:
+                    return False
+                if self.navigate(wp, raise_error=False):
+                    logger.info(
+                        f'{self.registration.role}: {self.symbol} | '
+                        f'Failed to navigate to {wp.symbol} | '
+                        f'{index}/{len(waypoints)}'
+                    )
+                else:
+                    self.refuel(ignore_errors=True)
+                    return True
+            return False
+
+        def drift_to_closest_fuel():
+            cur_wp = next(
+                (i for i in waypoints if i.symbol == self.nav.waypoint_symbol),
+                self.closest(waypoints)
+            )
+            try:
+                next_wp = waypoints[waypoints.index(cur_wp) - 1]
+            except IndexError:
+                next_wp = waypoints[0]
+            self.udpate_flight_mode('DRIFT')
+            if self.navigate(next_wp, raise_error=False):
+                return False
+            if self.refuel(ignore_errors=True):
+                return True
+            return False
+
         if self.nav.waypoint_symbol == waypoint.symbol:
             return
+
+        starting_flight_mode = self.nav.flight_mode
         current_nav = self.nav.to_dict()
         current_nav['status'] = 'IN_TRANSIT'
         self.update_data_item('nav', current_nav)
-        self.update_flight_mode(flight_mode)
+        if starting_flight_mode != flight_mode:
+            self.update_flight_mode(flight_mode)
         self.refuel(ignore_errors=True)
         self.orbit()
 
         # Can make it to the dest as is. No need to do anything else
         if not self.navigate(waypoint, raise_error=False):
+            if self.nav.flight_mode != starting_flight_mode:
+                self.update_flight_mode(starting_flight_mode)
             self.refuel(ignore_errors=True)
             self.orbit()
             if callable(done_callback):
                 done_callback()
             return
 
-        closest_fuel_to_wp = sorted(
+        waypoints = sorted(
             self.markets.fuel_stations(),
             key=lambda x: utils.calculate_waypoint_distance(waypoint, x)
         )
-        last_successful_fueling = len(closest_fuel_to_wp) + 1
-        while self.navigate(waypoint, raise_error=False):
-            fuel_index = 0
-            next_fuel = closest_fuel_to_wp[fuel_index]
-            if self.nav.waypoint_symbol == next_fuel.symbol:
-                self.refuel(ignore_errors=True)
-                if self.nav.flight_mode == 'DRIFT':
-                    with self.agent.lock:
-                        self.agent.dead_ships[self.symbol] = self
-                    raise exceptions.NavigateInsufficientFuelError(
-                        r'¯\_(ツ)_/¯'
-                    )
-                logger.info(
-                    f'{self.registration.role}: {self.symbol} | '
-                    'Already at closest fuel '
-                    f'but cannot make it to {waypoint.symbol} at '
-                    f'{self.nav.flight_mode}. Will now DRIFT.'
-                )
-                self.update_flight_mode('DRIFT')
-                continue
-            while self.navigate(next_fuel, raise_error=False):
-                fuel_index += 1
-                if fuel_index >= last_successful_fueling:
-                    # There's a blackhole where the ship could
-                    # get to the closest fueling station to the waypoint
-                    # but not make it to the waypoint from there.
-                    # It would just continually cycle fuel stations if
-                    # the flight_mode was not switched to drift.
-                    # If it's *already* as DRIFT at this point, well, :/
-                    if self.nav.flight_mode == 'DRIFT':
-                        if err := self.navigate(waypoint, raise_error=False):
-                            try:
-                                logger.warning(err.data)
-                            except Exception as e:
-                                logger.warning(e)
-                            with self.agent.lock:
-                                self.agent.dead_ships[self.symbol] = self
-                            raise exceptions.NavigateInsufficientFuelError(
-                                'Waypoint too far away. SOL'
-                            )
-                        else:
-                            self.orbit()
-                            if callable(done_callback):
-                                done_callback()
-                            return
-                    else:
-                        logger.info(
-                            f'{self.registration.role}: {self.symbol} | '
-                            'At last successful fuel stop.  Will now DRIFT.'
-                        )
-                        self.update_flight_mode('DRIFT')
-                        break
-                try:
-                    next_fuel = closest_fuel_to_wp[fuel_index]
-                    logger.info(
-                        f'{self.registration.role}: {self.symbol} | '
-                        f'Trying next FUEL_STATION: {next_fuel.symbol} | '
-                        f'{fuel_index}/{len(closest_fuel_to_wp)}'
-                    )
-                except IndexError:
-                    if self.nav.flight_mode == 'DRIFT':
-                        if err := self.navigate(waypoint, raise_error=False):
-                            try:
-                                logger.warning(err.data)
-                            except Exception as e:
-                                logger.warning(e)
-                            with self.agent.lock:
-                                self.agent.dead_ships[self.symbol] = self
-                            raise exceptions.NavigateInsufficientFuelError(
-                                'No close fuel. SOL, buddy'
-                            )
-                        else:
-                            self.orbit()
-                            if callable(done_callback):
-                                done_callback()
-                            return
-                    if (self.fuel.current + 5) >= self.fuel.capacity:
-                        # Can't make it to the WP or any close fuel
-                        # Weird situation where it'll make the drift
-                        # to the closest_fuel_to_wp but also the farthest...
-                        self.update_flight_mode('DRIFT')
-                    else:
-                        # May have started with less than a full fuel tank
-                        logger.warning(
-                            f'{self.registration.role}: {self.symbol} | '
-                            'No CRUISABLE fuel stations. Now drifting.'
-                        )
-                        self.update_flight_mode('DRIFT')
-                        closest_drift_fuel = self.closest_fuel()
-                        if err := self.navigate(
-                            closest_drift_fuel, raise_error=False
-                        ):
-                            try:
-                                logger.warning(err.data)
-                            except Exception as e:
-                                logger.warning(e)
-                            with self.agent.lock:
-                                self.agent.dead_ships[self.symbol] = self
-                            raise exceptions.NavigateInsufficientFuelError(
-                                'No close fuel. ya burnt'
-                            )
-                        self.refuel()
-                        self.update_flight_mode('CRUISE')
-                    break
+        waypoints.insert(0, waypoint)
+
+        while True:
+            if navigate_to_next_waypoint():
+                if self.nav.waypoint_symbol == waypoint.symbol:
+                    # Reached destination
+                    self.orbit()
+                    if self.nav.flight_mode != starting_flight_mode:
+                        self.update_flight_mode(starting_flight_mode)
+                    if callable(done_callback):
+                        done_callback()
+                    return
+                else:
+                    # A waypoint on the chain was reached
+                    # Ship has been refueled
+                    # Retry with default flight_mode
+                    self.update_flight_mode(flight_mode)
             else:
-                last_successful_fueling = fuel_index
-            self.refuel(ignore_errors=True)
-        self.refuel(ignore_errors=True)
-        self.orbit()
-        if callable(done_callback):
-            done_callback()
+                if self.nav.flight_mode == 'BURN':
+                    self.update_flight_mode('CRUISE')
+                elif self.nav.flight_mode == 'CRUISE':
+                    if drift_to_closest_fuel():
+                        self.update_flight_mode(flight_mode)
+                elif self.nav.flight_mode == 'DRIFT':
+                    raise exceptions.NavigateInsufficientFuelError
+                else:
+                    logger.warning(
+                        f'{self.registration.role}: {self.symbol} | '
+                        f'Unsupported flight_mode {self.nav.flight_mode!r}. '
+                        'Defaulting to DRIFT.'
+                    )
+                    self.update_flight_mode('DRIFT')
 
     @retry()
     @transit
