@@ -105,7 +105,7 @@ def retry(jitter=.2, max_retries=5):
                         f'Received {e!r}.'
                     )
                     if not agent.client.testing:  # pragma: no cover
-                        time.sleep(jitter * attempt)
+                        time.sleep((jitter * attempt) + jitter)
                     last_exception = e
                 except snisp.exceptions.ClientError as e:
                     logger.warning(
