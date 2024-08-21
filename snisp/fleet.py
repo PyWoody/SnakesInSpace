@@ -685,7 +685,7 @@ class Ship(utils.AbstractJSONItem):
                 next_wp = waypoints[waypoints.index(cur_wp) - 1]
             except IndexError:
                 next_wp = waypoints[0]
-            self.udpate_flight_mode('DRIFT')
+            self.update_flight_mode('DRIFT')
             if self.navigate(next_wp, raise_error=False):
                 return False
             if self.refuel(ignore_errors=True):
