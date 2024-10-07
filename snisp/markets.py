@@ -395,10 +395,9 @@ class Markets:
             (i, s) for i in self.ship.waypoints.shipyards()
             for s in i.available_ships(ship_type=ship_type)
         )
-        try:
-            return min(output, key=lambda x: x[1].purchase_price)
-        except ValueError:
-            return None, None
+        return min(
+            output, key=lambda x: x[1].purchase_price, default=(None, None)
+        )
 
     def sells(self, trade_symbol):
         """

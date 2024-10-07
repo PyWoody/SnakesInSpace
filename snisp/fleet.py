@@ -360,12 +360,11 @@ class Ship(utils.AbstractJSONItem):
             Waypoint or Waypoint subclass if *iterables return at least one
             Waypoint or Waypoint subclass; else, None
         """
-        try:
-            return min(
-                (i for i in itertools.chain(*iterables)), key=self.distance
-            )
-        except ValueError:
-            return
+        return min(
+            (i for i in itertools.chain(*iterables)),
+            key=self.distance,
+            default=None
+        )
 
     def farthest(self, *iterables):
         """
@@ -382,12 +381,11 @@ class Ship(utils.AbstractJSONItem):
             Waypoint or Waypoint subclass if *iterables return at least one
             Waypoint or Waypoint subclass; else, None
         """
-        try:
-            return max(
-                (i for i in itertools.chain(*iterables)), key=self.distance
-            )
-        except ValueError:
-            return
+        return max(
+            (i for i in itertools.chain(*iterables)),
+            key=self.distance,
+            default=None
+        )
 
     def distance(self, destination):
         """Returns the distance between the Ship and Waypoint
