@@ -90,7 +90,12 @@ class TestMarkets:
         assert ship.markets(waypoint=waypoint) == market
         with market_side_effect as tmp:
             tmp.invalid = True
-            assert ship.markets().to_dict() == {}
+            assert ship.markets().to_dict() == {
+                'imports': [],
+                'exports': [],
+                'exchange': [],
+                'trade_goods': [],
+            }
 
         # 4603: MarketNotFoundError
         with market_side_effect as tmp:
@@ -100,7 +105,12 @@ class TestMarkets:
 
         with market_side_effect as tmp:
             tmp.uncharted = True
-            assert ship.markets().to_dict() == {}
+            assert ship.markets().to_dict() == {
+                'imports': [],
+                'exports': [],
+                'exchange': [],
+                'trade_goods': [],
+            }
 
         market_dict = ship.markets().to_dict()
         market_dict['location'] = snisp.systems.Location(
@@ -109,7 +119,12 @@ class TestMarkets:
         market = snisp.markets.Market(self.agent, market_dict)
         with market_side_effect as tmp:
             tmp.uncharted = True
-            assert market.data.to_dict() == {}
+            assert market.data.to_dict() == {
+                'imports': [],
+                'exports': [],
+                'exchange': [],
+                'trade_goods': [],
+            }
 
         market_dict = ship.markets().to_dict()
         market_dict['location'] = snisp.systems.Location(
@@ -118,7 +133,12 @@ class TestMarkets:
         market = snisp.markets.MarketData(self.agent, market_dict)
         with market_side_effect as tmp:
             tmp.uncharted = True
-            assert market.data.to_dict() == {}
+            assert market.data.to_dict() == {
+                'imports': [],
+                'exports': [],
+                'exchange': [],
+                'trade_goods': [],
+            }
 
         market_dict = ship.markets().to_dict()
         market_dict['location'] = snisp.systems.Location(

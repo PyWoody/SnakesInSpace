@@ -92,7 +92,12 @@ class Markets:
                     )
                     return MarketData(
                         self.agent,
-                        {'imports': [], 'exports': [], 'exchange': []}
+                        {
+                            'imports': [],
+                            'exports': [],
+                            'exchange': [],
+                            'trade_goods': []
+                        }
                     )
                 elif data.get('code') == 4001:
                     logger.warning(
@@ -100,7 +105,12 @@ class Markets:
                     )
                     return MarketData(
                         self.agent,
-                        {'imports': [], 'exports': [], 'exchange': []}
+                        {
+                            'imports': [],
+                            'exports': [],
+                            'exchange': [],
+                            'trade_goods': []
+                        }
                     )
             raise e
         data = response.json()['data']
@@ -540,7 +550,12 @@ class Market(utils.AbstractJSONItem):
                     )
                     return MarketData(
                         self.agent,
-                        {'imports': [], 'exports': [], 'exchange': []}
+                        {
+                            'imports': [],
+                            'exports': [],
+                            'exchange': [],
+                            'trade_goods': []
+                        }
                     )
             raise e
         data = response.json()['data']
