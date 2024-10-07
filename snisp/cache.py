@@ -36,22 +36,14 @@ def lookup(*args, **kwargs):
     # kwargs: {params}
     url = urlparse.urlsplit(args[1])
     parts = url.path.split('/')
-    if parts[-1] == 'market':
-        # Markets always need live data
-        # Fucks up trade_volume otherwise
-        return
-    elif parts[-1] == 'waypoints':
+    if parts[-1] == 'waypoints':
         return waypoints_lookup(url, params=kwargs.get('params'))
 
 
 def insert(response, *args, **kwargs):
     url = urlparse.urlsplit(args[1])
     parts = url.path.split('/')
-    if parts[-1] == 'market':
-        # Markets always need live data
-        # Fucks up trade_volume otherwise
-        return
-    elif parts[-1] == 'waypoints':
+    if parts[-1] == 'waypoints':
         return waypoints_insert(response, url, params=kwargs.get('params'))
 
 
