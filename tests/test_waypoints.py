@@ -517,7 +517,9 @@ class TestWaypoint:
             )
         )
         construction_data['data']['systemSymbol'] = 'TEST-SYSTEM'
-        construction_side_effect = ConstructionSiteSideEffect(construction_data)
+        construction_side_effect = ConstructionSiteSideEffect(
+            construction_data
+        )
         construction_route = respx_mock.get(
             '/systems/TEST-SYSTEM/waypoints/'
             'TEST-SYSTEM-CONSTRUCTION/construction'

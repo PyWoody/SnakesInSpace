@@ -196,7 +196,7 @@ class TestShipyard:
 
         assert shipyard.data.symbol == 'TEST-SYSTEM-CLOSESTWAYPOINT'
         assert shipyard.data.to_dict() == shipyards_data['data']
-        
+
         with shipyards_side_effect as tmp:
             shipyard = next(iter(ship.shipyards))
             tmp.uncharted = True
@@ -327,7 +327,7 @@ class TestShipyard:
             with pytest.raises(snisp.exceptions.NoShipAtLocationError):
                 list(shipyard.transactions())
 
-        with fleet_side_effect as fleet_tmp, shipyards_side_effect  as yard_tmp:
+        with fleet_side_effect as fleet_tmp, shipyards_side_effect as yard_tmp:  # noqa: E501
             yard_tmp.uncharted = True
             fleet_tmp.data['data'][0]['nav']['status'] = 'IN_ORBIT'
             fleet_tmp.data['data'][0]['nav']['waypointSymbol'] = 'TEST-SYSTEM-WAYPOINT'  # noqa: E501
@@ -336,7 +336,7 @@ class TestShipyard:
             for transaction in shipyard.transactions():
                 assert transaction.to_dict() == {}
 
-        with fleet_side_effect as fleet_tmp, shipyards_side_effect  as yard_tmp:
+        with fleet_side_effect as fleet_tmp, shipyards_side_effect as yard_tmp:  # noqa: 1
             yard_tmp.invalid = True
             fleet_tmp.data['data'][0]['nav']['status'] = 'IN_ORBIT'
             fleet_tmp.data['data'][0]['nav']['waypointSymbol'] = 'TEST-SYSTEM-WAYPOINT'  # noqa: E501
@@ -390,7 +390,7 @@ class TestShipyardShip:
 
         with pytest.raises(snisp.exceptions.SpaceAttributeError):
             ships = list(shipyard.available_ships('invalid'))
-        
+
         with shipyards_side_effect as tmp:
             shipyard = next(iter(ship.shipyards))
             tmp.uncharted = True

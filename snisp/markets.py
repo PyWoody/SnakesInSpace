@@ -91,14 +91,16 @@ class Markets:
                         f'Market at {waypoint_symbol} does not exist'
                     )
                     return MarketData(
-                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                        self.agent,
+                        {'imports': [], 'exports': [], 'exchange': []}
                     )
                 elif data.get('code') == 4001:
                     logger.warning(
                         f'Waypoint at {waypoint_symbol} has not been charted.'
                     )
                     return MarketData(
-                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                        self.agent,
+                        {'imports': [], 'exports': [], 'exchange': []}
                     )
             raise e
         data = response.json()['data']
@@ -537,7 +539,8 @@ class Market(utils.AbstractJSONItem):
                         f'Market at {self.location!r} has not been charted.'
                     )
                     return MarketData(
-                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                        self.agent,
+                        {'imports': [], 'exports': [], 'exchange': []}
                     )
             raise e
         data = response.json()['data']
@@ -597,7 +600,8 @@ class MarketData(utils.AbstractJSONItem):
                         f'Market at {self.location!r} has not been charted.'
                     )
                     return MarketData(
-                        self.agent, {'imports': [], 'exports': [], 'exchange': []}
+                        self.agent,
+                        {'imports': [], 'exports': [], 'exchange': []}
                     )
             raise e
         data = response.json()['data']
