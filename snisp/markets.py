@@ -601,7 +601,12 @@ class MarketData(utils.AbstractJSONItem):
                     )
                     return MarketData(
                         self.agent,
-                        {'imports': [], 'exports': [], 'exchange': [], 'trade_goods': []}
+                        {
+                            'imports': [],
+                            'exports': [],
+                            'exchange': [],
+                            'trade_goods': []
+                        }
                     )
             raise e
         data = response.json()['data']
