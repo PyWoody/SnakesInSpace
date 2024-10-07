@@ -887,7 +887,7 @@ class Ship(utils.AbstractJSONItem):
             max_units = self.cargo.capacity
         transactions = []
         market_data = self.markets()
-        if not market_data:
+        if not market_data or not market_data.trade_goods:
             logger.warning(
                 f'{self.registration.role}: {self.symbol} | '
                 f'No market at {self.location.waypoint} '
@@ -1273,7 +1273,7 @@ class Ship(utils.AbstractJSONItem):
                 )
                 return transactions
         market_data = self.markets()
-        if not market_data:
+        if not market_data or not market_data.trade_goods:
             logger.warning(
                 f'{self.registration.role}: {self.symbol} | '
                 f'No market at {self.location.waypoint}. '
