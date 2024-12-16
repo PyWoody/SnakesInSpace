@@ -32,7 +32,7 @@ class Fleet:
     def command_ship(self):
         if self._command_ship is None:
             self._command_ship = next(iter(self))
-        return self._command_ship
+        return self._command_ship.refresh()
 
     @retry()
     def __call__(self, ship_symbol):
