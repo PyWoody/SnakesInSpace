@@ -33,7 +33,7 @@ def main(*, agent_symbol, faction='', email='', token=''):
 
 def run(agent):
     # Get your command ship
-    command_ship = next(iter(agent.fleet))
+    command_ship = agent.fleet.command_ship
 
     # Get all of the Markets in your Command Ship's System
     markets = list(command_ship.markets)

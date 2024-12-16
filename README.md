@@ -38,7 +38,7 @@ My current Agent is playing under the Symbol "SNAKESINSPACE."
 from snisp.agent import Agent
 
 >>> agent = Agent(symbol='your_symbol_here', faction='COSMIC', email='optional@exmaple.com')
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> asteroid = ship.closest(ship.waypoints.asteroids())
 >>> ship.autopilot(asteroid)  # Autopilot blocks until at destination
 >>> while ship.cargo.units < ship.cargo.capacity:
@@ -248,6 +248,8 @@ By default, a new Agent will receive a command `ship` and a `probe`. As you cont
 
 # Get the first ship, which will be the default COMMAND ship
 >>> ship = next(iter(agent.fleet))
+>>> ship == agent.fleet.command_ship
+... True
 
 # Get all available Drones
 >>> drones = list(agent.fleet.drones())
@@ -297,7 +299,7 @@ As always, you can avoid this side effect by building the list of ships ahead of
 A `ship` returned by `agent.fleet` will be a `snisp.fleet.Ship` instance. 
 
 ```python3
->>> ship = next(iter(agent.fleet))  # Starting ship. This will be the default COMMAND ship
+>>> ship = agent.fleet.command_ship  # Starting ship. This will be the default COMMAND ship
 >>> ship.registration.role
 'COMMAND'
 >>> ship.symbol
@@ -513,7 +515,7 @@ The `raise_error` kwarg can be ignored by most users.
 A typical `navigate` scenario would be to vist the closest `Waypoint`.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> waypoint = ship.closest(ship.waypoints)
 >>> waypoint.symbol
 X1-BD70-J64
@@ -530,7 +532,7 @@ If the `navigate` request is succesful, control will be returned back to the cal
 A convenience method, `ship.autopilot`, was created to take the guesswork out of navigating, refueling, and controlling flight modes that is inherit to `ship.navigate`. Any situation in which a `ship` can use `ship.navigate`, it could more easily use `ship.autopilot`
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> waypoint = ship.closest(ship.waypoints)
 >>> waypoint.symbol
 X1-BD70-J64
@@ -556,7 +558,7 @@ For the latter, if a `ship` does become "dead" in the water in that it cannot re
 `ship.autopilot` does accept a `done_callback` kwarg. The callback, so long as it is `callable()`, will be executed before returning control back to the thread. This is convenient if you, say, want to navigate to a `Waypoint` and make an extraction before waiting for the next thread loop.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> asteroid = ship.closest(ship.waypoints.asteroids())
 >>> ship.autopilot(asteroid, done_callback=ship.extract)
 ```
@@ -599,7 +601,7 @@ As mentioned previously, if you stick with `ship.autopilot`, you will not need t
 For convenience, the `ship` object has a `closest_fuel` method that can find the closest available `Waypoint` that sells fuel.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> fuel_station = ship.closest_fuel()
 >>> ship.navigate(fuel_station)
 >>> ship.refuel()
@@ -607,7 +609,7 @@ For convenience, the `ship` object has a `closest_fuel` method that can find the
 
 You can also refuel from fuel found in the `ship.cargo` by calling
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> ship.refuel(from_cargo=True)
 ```
 
@@ -621,7 +623,7 @@ Refuel also has an `ignore_errors` kwarg that accepts a boolean. If `True`, any 
 Each System has at least one `JumpGate` that allows the `ship` to navigate between Systems. To use a `JumpGate`, the gate will need to be fully constructed and the `ship` will need to be located at the `Waypoint`.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> jump_gate = next(iter(ship.waypoints.jump_gates()))
 >>> jump_gate.is_under_construction
 False
@@ -636,7 +638,7 @@ False
 A `ship` with the `Warp Drive` Mount installed can also `warp` to other Systems.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> next_system = next(i for i in ship.agent.systems if i.symbol != ship.nav.system_symbol)
 >>> ship.warp(next_system)
 ```
@@ -652,7 +654,7 @@ A `ship` with the `Warp Drive` Mount installed can also `warp` to other Systems.
 Purchasing items is as simple as navigating to the `Market` and purchasing as much as you can afford.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> ship.cargo.inventory
 []
 >>> market = ship.closest(ship.markets.exports('GOLD'))
@@ -677,7 +679,7 @@ Another benefit of `ship.autopurchase` is it handles the maximum units per trans
 ```python3
 >>> agent.data.credits
 1_000_000
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> ship.cargo.inventory
 []
 >>> market = ship.closest(ship.markets.exports('GOLD'))
@@ -698,7 +700,7 @@ limited by a buffer
 ```python3
 >>> agent.data.credits
 300_000
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> ship.cargo.inventory
 []
 >>> market = ship.closest(ship.markets.exports('GOLD'))
@@ -990,7 +992,7 @@ As you've seen sprinkled throughout the guide, the `ship` object does have helpe
 
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> closest_asteroid = ship.closest(
 ...     ship.waypoints.asteroid_bases(),
 ...     ship.waypoints.asteroids(),
@@ -1046,7 +1048,7 @@ In SpaceTraders, `Waypoints` are the fundamental location points within a System
 You can see all `Waypoints` in a `ship`'s System by iterating over `ship.waypoint` directly.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> waypoints = list(ship.waypoints)
 ```
 
@@ -1055,7 +1057,7 @@ Each `Waypoint` `type`has a convenience method for quick and convenient iteratio
 For instance, to find all `Asteroids`, 
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> asteroids = list(ship.waypoints.asteroids())
 >>> all(asteroid.type == 'ASTEROID' for asteroid in asteroids)
 True
@@ -1065,7 +1067,7 @@ True
 
 all `JumpGates`,
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> jump_gates = list(ship.waypoints.jump_gates())
 >>> all(jump_gate.type == 'JUMP_GATE' for jump_gate in jump_gates)
 True
@@ -1078,7 +1080,7 @@ and so on.
 Some `Waypoints` have unique traits that provide additional information about itself. You can filter for these traits by using the `traits` kwarg in the respective `ship.waypoints` methods.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> asteroids = list(ship.waypoints.asteroids())
 >>> sorted({i.symbol for w in asteroids for i in w.traits})
 ['COMMON_METAL_DEPOSITS', 'DEEP_CRATERS', 'EXPLOSIVE_GASES', 'HOLLOWED_INTERIOR', 'MICRO_GRAVITY_ANOMALIES', 'MINERAL_DEPOSITS', 'PRECIOUS_METAL_DEPOSITS', 'RADIOACTIVE', 'RARE_METAL_DEPOSITS', 'SHALLOW_CRATERS', 'UNSTABLE_COMPOSITION']
@@ -1090,7 +1092,7 @@ True
 You can use `traits` and `types` while calling `ship.waypoints` (`__call__`) directly as well. Internally, this is how SnakesInSpace finds `Markets`.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> market_waypoints = list(ship.waypoints(traits='MARKETPLACE'))
 >>> markets = list(ship.markets)
 >>> len(market_waypoints) == len(markets)
@@ -1116,14 +1118,14 @@ A `Market` is a `Waypoint` type that imports, exports, or exchanges goods. Not a
 You can see all of the `Markets` in the System in which a `ship` is located by iterating over the `ship`'s `Markets`
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> markets = list(ship.markets)
 ```
 
 A `Market` object can be created from a `Waypoint` or `waypoint.symbol`, if the `Waypoint` is also a `Market`. This can be convenient when jumping around between object types.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> market = ship.markets(waypoint_symbol='MARKET_WAYPOINT_SYMBOL')
 >>> market_as_a_waypoint = ship.waypoints(waypoint_symbol='MARKET_WAYPOINT_SYMBOL')
 >>> market = ship.markets(waypoint=market_as_a_waypoint)
@@ -1140,7 +1142,7 @@ This is helpful if you're iterating over `Asteroid`s and an `Asteroid` is also a
 You can find which `Markets` import, exchange, or export specific goods via their respective iterable methods.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> iron_importers = list(ship.markets.imports('IRON'))
 >>> iron_exports = list(ship.markets.exports('IRON'))
 >>> iron_exchanges = list(ship.markets.exchanges('IRON'))
@@ -1153,7 +1155,7 @@ You can find which `Markets` import, exchange, or export specific goods via thei
 A convenience function, `ship.markets.sells` returns an iterable of all `Markets` that sell the listed good. As mentioned above, if the `market` sells the good, it also purchases the good.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> iron_markets = list(ship.markets.sells('IRON'))
 ```
 
@@ -1169,7 +1171,7 @@ With a `ship` or `probe` located at a `Market`, you can begin tracking the live 
 Either by calling `ship.markets()` directly,
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> markets_data = [ship.markets() for ship in agent.fleet if ship.at_market]
 ```
 
@@ -1177,7 +1179,7 @@ or by calling the `.data` property of a `Market` obect
 
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> markets_data = [market.data for market in ship.markets]
 ```
 
@@ -1193,7 +1195,7 @@ Once you've parked enough `probe`s at enough `Markets`, you can begin trading on
 It is worth pointing out there is a `Markets.fuel_stations` method that is meant to be a convenient lookup for `Markets` that export or exchange FUEL. For instance, you can find the closest `Market` that allows refueling by calling
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> closest_fuel = ship.closet(ship.markets.fuel_stations())
 >>> ship.navigate(closest_fuel)
 >>> ship.refuel()
@@ -1210,14 +1212,14 @@ Like `Markets`, all `Shipyards` are `Waypoints` but not all `Waypoints` are `Shi
 You can find all `Shipyards` in a `ship`s System by iterating over the `ship.shipyards`
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> shipyards = list(ship.shipyards)
 ```
 
 Like a `Market`, a `Shipyard` with a `ship` or `probe` located at it can reveal additional information by calling `.data`.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> shipyard = next(iter(ship.shipyards))  # Assumes a Ship or Drone is located at the Waypoint
 >>> shipyard.data  # the good stuff
 ```
@@ -1226,7 +1228,7 @@ To purchase additional `Ships`, `Probes`, `Drones`, and `Shuttles`, call the `.p
 
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> shipyard = ship.closest(ship.shipyards)
 >>> ship.autopilot(shipyard)
 >>> snisp.utils.ilen(agent.fleet)
@@ -1241,7 +1243,7 @@ If you attempt to purchase a `ship` at a `Shipyard` that does not have any `Prob
 The `Shipyards` class does support `autopurchase`, like in `Markets`. This is a convenience method to purchase additional `Ships` by type. `autopurchase` requires a `ship_type` kwarg and can also take optional kwargs of `max_units` and `buffer`, with defaults of 1 and 300,000, respectively. The `buffer` works like the buffer in `ship.autopurchase` in that you will be able to purchase up to `max_units` so long as your current `agent.data.credits` - `buffer` >= purchase price. To remove the `buffer`, just pass a 0.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> snisp.utils.ilen(agent.fleet)
 2
 >>> transactions = ship.shipyards.autopurchase(ship_type='SHIP_PROBE', max_units=5)
@@ -1260,7 +1262,7 @@ You can see in the above example the user could only afford two `Probes` before 
 As a convenience, you can see the available `ship`s in a `Shipyard` by calling the `.available_ships` method. The method accepts an optional `ship_type` if you wanted to check if the `Shipyard` sold `Probes`, for instance.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> shipyard = next(iter(ship.shipyards))  # Assumes a Ship or Drone is located at the Waypoint
 >>> all_available_ships = list(shipyard.available_ships())
 >>> available_probes = list(shipyard.available_ships('SHIP_PROBE))
@@ -1271,7 +1273,7 @@ SpaceTraders does not limit the supply of ships available for purchase in a `Shi
 The `ship` objects returned by `.available_ships` do have a convenience method of `purchase`, which works  like `Shipyard.purchase` except the `ship_type` is the `ship`s type by default. Meaning, if the type of the `ship` returned by `.available_ships` is a `probe` and you call `.purchase()` on it, a `probe` will be purchased. This can be handy for manually iterating over the `ship`s being sold at the `Shipyard` and purchasing them on demand.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> shipyard = next(iter(ship.shipyards))  # Assumes a Ship or Drone is located at the Waypoint
 >>> for ship in shipyard.available_ships():
 ...     if ship.purchase_price < 10_000:
@@ -1287,7 +1289,7 @@ Select `Waypoints` will need construction materials delivered to them before the
 The `ConstructionSite` will list the required materials in its `.materials`.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> construction_sites = list(ship.waypoints.construction_sites())
 >>> all(not construction_site.is_complete for construction_site in construction_sites)
 True
@@ -1307,7 +1309,7 @@ This particular `JumpGate` won't become functional until 4,000 Units of `FAB_MAT
 You can supply materials to a `ConstructionSite` in much the same way as you can deliver materials to a `Contract`. Diffferences being, a `ConstructionSite` uses `.supply` instead of `.deliver` and a `ConstructionSite` requires kwargs of `ship`, `trade_symbol`, and `units`.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> construction_site = next(iter(ship.waypoints.construction_sites()))
 >>> construction_site
 ConstructionSite({'symbol': 'X1-CC27-I56', 'materials': [{'tradeSymbol': 'FAB_MATS', 'required': 4000, 'fulfilled': 0}, {'tradeSymbol': 'ADVANCED_CIRCUITRY', 'required': 1200, 'fulfilled': 0}, {'tradeSymbol': 'QUANTUM_STABILIZERS', 'required': 1, 'fulfilled': 1}], 'isComplete': False, 'systemSymbol': 'X1-CC27'})
@@ -1341,7 +1343,7 @@ You can see all of the `Systems` in the current SpaceTraders system by iterating
 Each `ship` will contain the `system` the `ship` is located in it's respective `.system` property. You can scan for nearby `Systems` with `ship.systems.scan()` method.
 
 ```python3
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> scans = list(ship.system.scan())
 >>> scans[0]
 StarSystem({'symbol': 'X1-HD87', 'sectorSymbol': 'X1', 'type': 'ORANGE_STAR', 'x': -22731, 'y': -8129, 'distance': 300}), StarSystem({'symbol': 'X1-MR62', 'sectorSymbol': 'X1', 'type': 'BLUE_STAR', 'x': -23151, 'y': -8498, 'distance': 761})
@@ -1358,7 +1360,7 @@ If you start one action in a thread and attempt to perform another action on tha
 
 ```python3
 >>> from threading import Thread
->>> ship = next(iter(agent.fleet))
+>>> ship = agent.fleet.command_ship
 >>> waypoint = ship.farthest(ship.waypoints)
 >>> t = Thread(target=ship.autopilot, args=(waypoint,))
 >>> t.start()
@@ -1381,7 +1383,7 @@ To avoid unnecessary blocking, make sure to perform any `ship` action in its own
 ...                 ship.jettison(extraction.symbol, exctraction.units)
 ...         ship.sell_off_cargo()
 >>>
->>> command_ship = next(iter(agent.fleet))
+>>> command_ship = agent.fleet.command_ship
 >>> for asteroid in command_ship.waypoints.asteroids():
 ...     threads = []
 ...     for ship in agent.fleet.ships():

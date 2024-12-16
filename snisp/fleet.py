@@ -23,9 +23,16 @@ class Fleet:
 
     def __init__(self, agent):
         self.agent = agent
+        self._command_ship = None
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.agent!r})'
+
+    @property
+    def command_ship(self):
+        if self._command_ship is None:
+            self._command_ship = next(iter(self))
+        return self._command_ship
 
     @retry()
     def __call__(self, ship_symbol):
