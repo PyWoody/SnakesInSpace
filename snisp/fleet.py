@@ -276,10 +276,10 @@ class Ship(utils.AbstractJSONItem):
         Returns:
                 bool
         """
-        for mount in self.mounts:
-            if mount.symbol.upper().startswith('MOUNT_MINING_LASER_'):
-                return True
-        return False
+        return any(
+            mount.symbol.upper().startswith('MOUNT_MINING_LASER_')
+            for mount in self.mounts
+        )
 
     @property
     def can_refine_gas(self):
@@ -293,10 +293,10 @@ class Ship(utils.AbstractJSONItem):
         Returns:
                 bool
         """
-        for module in self.modules:
-            if module.symbol.upper().startswith('MODULE_GAS_PROCESSOR_'):
-                return True
-        return False
+        return any(
+            module.symbol.upper().startswith('MODULE_GAS_PROCESSOR_')
+            for module in self.modules
+        )
 
     @property
     def can_refine_ore(self):
@@ -310,10 +310,10 @@ class Ship(utils.AbstractJSONItem):
         Returns:
                 bool
         """
-        for module in self.modules:
-            if module.symbol.upper().startswith('MODULE_MINERAL_PROCESSOR_'):
-                return True
-        return False
+        return any(
+            module.symbol.upper().startswith('MODULE_MINERAL_PROCESSOR_')
+            for module in self.modules
+        )
 
     @property
     def can_siphon(self):
@@ -327,10 +327,10 @@ class Ship(utils.AbstractJSONItem):
         Returns:
                 bool
         """
-        for mount in self.mounts:
-            if mount.symbol.upper().startswith('MOUNT_GAS_SIPHON_'):
-                return True
-        return False
+        return any(
+            mount.symbol.upper().startswith('MOUNT_GAS_SIPHON_')
+            for mount in self.mounts
+        )
 
     @property
     def can_survey(self):
@@ -344,10 +344,10 @@ class Ship(utils.AbstractJSONItem):
         Returns:
                 bool
         """
-        for mount in self.mounts:
-            if mount.symbol.upper().startswith('MOUNT_SURVEYOR_'):
-                return True
-        return False
+        return any(
+            mount.symbol.upper().startswith('MOUNT_SURVEYOR_')
+            for mount in self.mounts
+        )
 
     def arrived_at_destination(self):
         current_nav = self.nav.to_dict()
