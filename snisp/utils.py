@@ -166,7 +166,7 @@ class AbstractJSONItem:
                     {}
                 )
                 data = []
-                for index, item in enumerate(value):
+                for item in value:
                     if type(item) == str:  # pragma: no cover
                         data.append(item)
                     else:
