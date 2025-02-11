@@ -80,7 +80,6 @@ def insert_waypoints(
     update_values = [params[k] for k in keys]
     update_values.insert(0, json.dumps(data))
 
-    # INSERT OR REPLACE/REPLACE INTO wasn't working reliably
     where_string = ' AND '.join(
         f'{k} = (?)' for k in keys if k != 'last_updated'
     )
