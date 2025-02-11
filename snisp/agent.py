@@ -22,15 +22,15 @@ class Agent:
     def __init__(self, *, symbol='', faction='', email='', token=''):
         database.setup()
         self.lock = threading.RLock()
-        self.__systems = None
+        self._systems = None
         user_data = load_user(
             symbol=symbol, faction=faction, email=email, token=token
         )
-        self.__email = user_data.email
-        self.__symbol = user_data.symbol
-        self.__faction = user_data.faction
-        self.__token = user_data.token
-        self.__client = SpaceClient(token=self.token)
+        self._email = user_data.email
+        self._symbol = user_data.symbol
+        self._faction = user_data.faction
+        self._token = user_data.token
+        self._client = SpaceClient(token=self.token)
         atexit.register(self.client.cleanup)
         self.contracts = Contracts(self)
         self.fleet = Fleet(self)
@@ -55,7 +55,7 @@ class Agent:
     @property
     def client(self):
         """Property that returns the modified HTTPX Client"""
-        return self.__client
+        return self._client
 
     @property
     def data(self):
@@ -69,25 +69,25 @@ class Agent:
 
     @property
     def email(self):
-        return self.__email
+        return self._email
 
     @property
     def faction(self):
-        return self.__faction
+        return self._faction
 
     @property
     def symbol(self):
-        return self.__symbol
+        return self._symbol
 
     @property
     def systems(self):
-        if self.__systems is None:
-            self.__systems = Systems(self)
-        return self.__systems
+        if self._systems is None:
+            self._systems = Systems(self)
+        return self._systems
 
     @property
     def token(self):
-        return self.__token
+        return self._token
 
 
 class PlayerData(utils.AbstractJSONItem):
