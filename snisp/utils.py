@@ -1,6 +1,7 @@
 import copy
 import logging
 import math
+import re
 import threading
 import traceback
 
@@ -15,6 +16,12 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ATTRIBUTE_LOCK = threading.Lock()
 logger = logging.getLogger(__name__)
+
+SNAKE_RE = re.compile(r'[a-z]_', re.IGNORECASE)
+CAMEL_RE = re.compile(r'[a-z][A-Z]')
+TO_SNAKE_RE = re.compile(r'[A-Z]')
+TO_CAMEL_RE = re.compile(r'_([a-z])', re.IGNORECASE)
+DUNDER_RE = re.compile(r'__.*__')
 
 
 class AbstractJSONItem:
@@ -226,31 +233,21 @@ def is_list_like(value):
 
 
 def snake_case(name):
-    if name.startswith('__') and name.endswith('__'):  # pragma: no cover
+    def to_lower(matchobj):
+        return f'_{matchobj.group(0).lower()}'
+
+    if DUNDER_RE.fullmatch(name):  # pragma: no cover
         return name
-    output = ''
-    for char in name:
-        if char.isupper():
-            output += f'_{char.lower()}'
-        else:
-            output += char
-    return output
+    return TO_SNAKE_RE.sub(to_lower, name)
 
 
 def camel_case(name):
-    if name.startswith('__') and name.endswith('__'):
+    def to_upper(matchobj):
+        return matchobj.group(1).upper()
+
+    if DUNDER_RE.fullmatch(name):
         return name
-    upper_next = False
-    output = ''
-    for char in name:
-        if char == '_':
-            upper_next = True
-        else:
-            if upper_next:
-                char = char.upper()
-                upper_next = False
-            output += char
-    return output
+    return TO_CAMEL_RE.sub(to_upper, name)
 
 
 # Helpers
