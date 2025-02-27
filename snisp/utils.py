@@ -17,10 +17,10 @@ except ModuleNotFoundError:  # pragma: no cover
 ATTRIBUTE_LOCK = threading.Lock()
 logger = logging.getLogger(__name__)
 
-SNAKE_RE = re.compile(r'[a-z]_', re.IGNORECASE)
+SNAKE_RE = re.compile(r'[a-z]_[a-z]', re.IGNORECASE)
 CAMEL_RE = re.compile(r'[a-z][A-Z]')
 TO_SNAKE_RE = re.compile(r'[A-Z]')
-TO_CAMEL_RE = re.compile(r'_([a-z])', re.IGNORECASE)
+TO_CAMEL_RE = re.compile(r'([a-z])_([a-z])', re.IGNORECASE)
 DUNDER_RE = re.compile(r'__.*__')
 
 
@@ -243,7 +243,8 @@ def snake_case(name):
 
 def camel_case(name):
     def to_upper(matchobj):
-        return matchobj.group(1).upper()
+        left, right = matchobj.groups()
+        return f'{left.lower()}{right.upper()}'
 
     if DUNDER_RE.fullmatch(name):
         return name
